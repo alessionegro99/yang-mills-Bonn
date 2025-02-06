@@ -198,6 +198,21 @@ void polyakov(Gauge_Conf const * const GC,
               Geometry const * const geo,
               double *repoly,
               double *impoly);
+void polyvec(Gauge_Conf const * const GC,
+             Geometry const * const geo,
+             double complex * polyvec);
+void polyakov_FT(Geometry const * const geo,
+                 double complex const * const polyvec,
+                 double complex * polyakov_FT,
+                 double * spatial_momentum);
+void polyakov_correlation_length(Geometry const * const geo,
+              double complex const * const polyvec, 
+              double * recorrlensq,
+              double * imcorrlensq);
+void polyakov_corr(Geometry const * const geo,
+              GParam const * const param,
+              double complex const * const polyvec, 
+              double complex *polycorr);            
 void polyakov_adj(Gauge_Conf const * const GC,
                   Geometry const * const geo,
                   double *repoly,

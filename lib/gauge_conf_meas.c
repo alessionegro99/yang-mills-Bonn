@@ -505,6 +505,168 @@ void polyakov_for_tracedef(Gauge_Conf const * const GC,
    free(imp);
    }
 
+// computing all possible Polyakov loops for a given lattice
+void polyvec(Gauge_Conf const * const GC,
+             Geometry const * const geo,
+             double complex * polyvec)
+{
+   int rsp;
+
+   #ifdef OPENMP_MODE
+   #pragma omp parallel for num_threads(NTHREADS) private(rsp)
+   #endif
+   for(rsp=0; rsp<geo->d_space_vol; rsp++)
+	  {
+	  long r;
+	  int i;
+	  GAUGE_GROUP matrix;
+	  
+	  r=sisp_and_t_to_si(geo, rsp, 0);
+	  
+	  one(&matrix);
+	  for(i=0; i<geo->d_size[0]; i++)
+	    {
+	         times_equal(&matrix, &(GC->lattice[r][0]));
+            r = nnp(geo, r, 0); 
+	    }
+		
+	  polyvec[rsp] = retr(&matrix) + I*imtr(&matrix);
+	  }
+}
+
+// Polyakov loops in momentum space for a given value of spatial momentum \vec{p}
+void polyakov_FT(Geometry const * const geo,
+                 double complex const * const polyvec,
+                 double complex * polyakov_FT,
+                 double * spatial_momentum)
+{
+   int cartcoord[STDIM];
+   long rsp;
+   double complex polyakov_FT_tmp;
+
+   polyakov_FT_tmp = 0.0 + 0.0 * I;
+
+   #ifdef OPENMP_MODE
+   #pragma omp parallel for num_threads(NTHREADS) private(rsp, i, r, aux) reduction(+: polyakov_FT_tmp)
+   #endif
+   for(rsp = 0; rsp < geo->d_space_vol; rsp++)
+   {
+      int i;
+      long r;
+      double complex aux; 
+
+	   r = sisp_and_t_to_si(geo, rsp, 0);
+
+      si_to_cart(cartcoord, r, geo);
+         
+      aux = 1.0 + I * 0.0;
+      for(i = 0; i < STDIM - 1; i++){
+         aux *= cexp(I * spatial_momentum[i] * cartcoord[i+1]); 
+      }
+      aux *= polyvec[rsp];
+
+      polyakov_FT_tmp += aux;
+   } 
+
+   *(polyakov_FT) = polyakov_FT_tmp * geo->d_inv_space_vol / (STDIM-1);
+}
+
+// second moment correlation length for Polyakov loops
+void polyakov_correlation_length(Geometry const * const geo,
+              double complex const * const polyvec, 
+              double * recorrlensq,
+              double * imcorrlensq)
+{
+   int i;
+   double complex corr_length_sq;
+   double spatial_momentum_0[STDIM-1];
+   double spatial_momentum_min[STDIM-1];
+   double complex A_0, A_min, G_0, G_min;
+
+   for(i=0; i<STDIM-1;i++)
+   {
+      spatial_momentum_0[i] = 0.0;
+   }
+
+   polyakov_FT(geo, polyvec, &A_0, spatial_momentum_0);
+
+   G_0 = A_0 * conj(A_0);
+
+   corr_length_sq = 0.0;
+   for(i=0; i<STDIM-1; i++)
+   {
+      int k;
+      double p_min;
+
+      p_min = PI2/(geo->d_size[i]);
+      for(k=0; k<STDIM-1; k++)
+      {
+         if(k==i)  
+            spatial_momentum_min[k] = p_min;
+         else
+            spatial_momentum_min[k] = 0.0;
+      }
+
+      polyakov_FT(geo, polyvec, &A_min, spatial_momentum_min);
+      G_min = A_min * conj(A_min);
+
+      corr_length_sq += 0.25/(sin(p_min*0.5)*sin(p_min*0.5))*(G_0 - G_min)/G_min;
+   }
+
+   corr_length_sq /= (double)(STDIM-1);
+
+   *recorrlensq = creal(corr_length_sq);
+   *imcorrlensq = cimag(corr_length_sq);
+} 
+
+// compute the Polyakov loop correlator up to a fixed distance
+void polyakov_corr(Geometry const * const geo,
+              GParam const * const param,
+              double complex const * const polyvec, 
+              double complex *polycorr)
+{
+   int k;
+   long rsp;
+   double rep, imp;
+
+   for(k=0; k<param->d_poly_corr; k++)
+      {
+      imp=0.0;
+      rep=0.0;
+
+      #ifdef OPENMP_MODE
+      #pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) reduction(+ : imp)
+      #endif
+      for(rsp=0; rsp<geo->d_space_vol; rsp++)
+         {
+	      int j, t_tmp;
+	      long r, rsp_tmp;
+         double complex p1, p2;
+	  
+	      for(j=1; j<STDIM; j++)
+	         {	
+	         int i;
+	  
+	         r=sisp_and_t_to_si(geo, rsp, 0);
+	  
+	         for(i=0; i<k; i++)
+	            {
+	            r=nnp(geo, r, j); 
+	            }
+		  
+	         si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
+            
+            p1=polyvec[rsp_tmp];
+            p2=polyvec[rsp];	 
+ 	
+            rep+=creal(conj(p2)*p1);
+            imp+=cimag(conj(p2)*p1);
+	         }
+         }
+	  
+      *(polycorr+k)=(rep+I*imp)*geo->d_inv_space_vol/(STDIM-1);
+      }
+}
 
 // compute the local topological charge at point r
 // see readme for more details
