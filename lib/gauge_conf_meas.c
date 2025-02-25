@@ -953,6 +953,62 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
       fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
       }
 
+   // Allocate memory for polyvec
+   double complex *polyakov_vector = malloc((unsigned long)geo->d_space_vol * sizeof(double complex));
+
+   // Check if memory allocation was successful
+   if (polyakov_vector == NULL) {
+      fprintf(stderr, "Memory allocation for polyvec failed! (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+   }
+
+   polyvec(GC, geo, polyakov_vector);
+
+   double spatial_momentum[STDIM-1];
+   double reG, imG;
+
+   for(i=0; i<STDIM-1; i++)
+   {
+      spatial_momentum[i] = 0.0;
+   }
+
+   polyakov_corr_FT(geo, polyakov_vector, &reG, &imG, spatial_momentum);
+
+   fprintf(datafilep, "%.12g %.12g ", reG, imG);
+
+   for(i = 0; i < STDIM - 1; i++)
+   {
+      int k;
+      double p_min, tmp_reG, tmp_imG;
+
+      p_min = PI2/(geo->d_size[i]);
+      for(k=0; k<STDIM-1; k++)
+      {
+         if(k==i)  
+            spatial_momentum[k] = p_min;
+         else
+            spatial_momentum[k] = 0.0;
+      }
+
+      polyakov_corr_FT(geo, polyakov_vector, &tmp_reG, &tmp_imG, spatial_momentum);
+
+      if(i==0)
+      {
+         reG = tmp_reG;
+         imG = tmp_imG;
+      }
+      else
+      {
+         reG += tmp_reG;
+         imG += tmp_imG;
+      }
+   }
+
+   fprintf(datafilep, "%.12g %.12g ", reG, imG);
+
+   // Free the allocated memory
+   free(polyakov_vector);
+
    // topological observables
    #if(STDIM==4)
      int err;
