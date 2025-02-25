@@ -568,14 +568,31 @@ void polyakov_FT(Geometry const * const geo,
       polyakov_FT_tmp += aux;
    } 
 
-   *(polyakov_FT) = polyakov_FT_tmp * geo->d_inv_space_vol / (STDIM-1);
+   *(polyakov_FT) = polyakov_FT_tmp * geo->d_inv_space_vol;
 }
 
-// second moment correlation length for Polyakov loops
-void polyakov_correlation_length(Geometry const * const geo,
+// Compute the Polyakov loop correlator in momentum space for a given momentum
+void polyakov_corr_FT(Geometry const * const geo,
+   double complex const * const polyvec, 
+   double * reG_FT,
+   double * imG_FT,
+   double * spatial_momentum)
+{
+   double complex A, G_FT;
+
+   polyakov_FT(geo, polyvec, &A, spatial_momentum);
+
+   G_FT = A * conj(A);
+
+   *reG_FT = creal(G_FT);
+   *imG_FT = cimag(G_FT);   
+}
+
+/*void polyakov_corr_FT(Geometry const * const geo,
               double complex const * const polyvec, 
               double * recorrlensq,
-              double * imcorrlensq)
+              double * imcorrlensq,
+              double * spatial_momentum)
 {
    int i;
    double complex corr_length_sq;
@@ -617,7 +634,7 @@ void polyakov_correlation_length(Geometry const * const geo,
 
    *recorrlensq = creal(corr_length_sq);
    *imcorrlensq = cimag(corr_length_sq);
-} 
+}*/
 
 // compute the Polyakov loop correlator up to a fixed distance
 void polyakov_corr(Geometry const * const geo,
