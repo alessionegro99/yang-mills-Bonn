@@ -27,7 +27,6 @@ uname -v = #57-Ubuntu SMP PREEMPT_DYNAMIC Wed Feb 12 23:42:21 UTC 2025
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH: /home/negro/.venv/MCMCvenv/bin/
 PATH: /home/linuxbrew/.linuxbrew/bin/
 PATH: /home/linuxbrew/.linuxbrew/sbin/
 PATH: /usr/local/sbin/
@@ -214,7 +213,7 @@ configure:4496: $? = 0
 configure:4496: result: yes
 configure:4509: checking for library containing MD5_Init
 configure:4539: gcc -o conftest    conftest.c  >&5
-/usr/bin/ld: /tmp/ccyi3NNE.o: in function `main':
+/usr/bin/ld: /tmp/ccwF2jHt.o: in function `main':
 conftest.c:(.text+0xe): undefined reference to `MD5_Init'
 collect2: error: ld returned 1 exit status
 configure:4539: $? = 1
@@ -268,7 +267,7 @@ conftest.c:32:6: warning: conflicting types for built-in function 'sqrt'; expect
       |      ^~~~
 conftest.c:1:1: note: 'sqrt' is declared in header '<math.h>'
     1 | /* confdefs.h */
-/usr/bin/ld: /tmp/ccfokGm1.o: in function `main':
+/usr/bin/ld: /tmp/ccb4AJLG.o: in function `main':
 conftest.c:(.text+0xe): undefined reference to `sqrt'
 collect2: error: ld returned 1 exit status
 configure:4601: $? = 1
