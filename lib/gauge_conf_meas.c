@@ -568,73 +568,21 @@ void polyakov_FT(Geometry const * const geo,
       polyakov_FT_tmp += aux;
    } 
 
-   *(polyakov_FT) = polyakov_FT_tmp * geo->d_inv_space_vol;
+   *(polyakov_FT) = polyakov_FT_tmp * geo->d_inv_space_vol; // /(STDIM - 1) ????
 }
 
 // Compute the Polyakov loop correlator in momentum space for a given momentum
 void polyakov_corr_FT(Geometry const * const geo,
    double complex const * const polyvec, 
-   double * reG_FT,
-   double * imG_FT,
+   double * G_FT,
    double * spatial_momentum)
 {
-   double complex A, G_FT;
+   double complex A;
 
    polyakov_FT(geo, polyvec, &A, spatial_momentum);
 
-   G_FT = A * conj(A);
-
-   *reG_FT = creal(G_FT);
-   *imG_FT = cimag(G_FT);   
+   * G_FT = creal(A) * creal(A) + cimag(A) * cimag(A);  
 }
-
-/*void polyakov_corr_FT(Geometry const * const geo,
-              double complex const * const polyvec, 
-              double * recorrlensq,
-              double * imcorrlensq,
-              double * spatial_momentum)
-{
-   int i;
-   double complex corr_length_sq;
-   double spatial_momentum_0[STDIM-1];
-   double spatial_momentum_min[STDIM-1];
-   double complex A_0, A_min, G_0, G_min;
-
-   for(i=0; i<STDIM-1;i++)
-   {
-      spatial_momentum_0[i] = 0.0;
-   }
-
-   polyakov_FT(geo, polyvec, &A_0, spatial_momentum_0);
-
-   G_0 = A_0 * conj(A_0);
-
-   corr_length_sq = 0.0;
-   for(i=0; i<STDIM-1; i++)
-   {
-      int k;
-      double p_min;
-
-      p_min = PI2/(geo->d_size[i]);
-      for(k=0; k<STDIM-1; k++)
-      {
-         if(k==i)  
-            spatial_momentum_min[k] = p_min;
-         else
-            spatial_momentum_min[k] = 0.0;
-      }
-
-      polyakov_FT(geo, polyvec, &A_min, spatial_momentum_min);
-      G_min = A_min * conj(A_min);
-
-      corr_length_sq += 0.25/(sin(p_min*0.5)*sin(p_min*0.5))*(G_0 - G_min)/G_min;
-   }
-
-   corr_length_sq /= (double)(STDIM-1);
-
-   *recorrlensq = creal(corr_length_sq);
-   *imcorrlensq = cimag(corr_length_sq);
-}*/
 
 // compute the Polyakov loop correlator up to a fixed distance
 void polyakov_corr(Geometry const * const geo,
@@ -938,7 +886,8 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,
                                              GParam const * const param,
                                              FILE *datafilep,
-                                             FILE *monofilep)
+                                             FILE *monofilep,
+                                             double complex * poly_vec)
    {
    int i;
    double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
@@ -953,33 +902,24 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
       fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
       }
 
-   // Allocate memory for polyvec
-   double complex *polyakov_vector = malloc((unsigned long)geo->d_space_vol * sizeof(double complex));
-
-   // Check if memory allocation was successful
-   if (polyakov_vector == NULL) {
-      fprintf(stderr, "Memory allocation for polyvec failed! (%s, %d)\n", __FILE__, __LINE__);
-      exit(EXIT_FAILURE);
-   }
-
-   polyvec(GC, geo, polyakov_vector);
+   polyvec(GC, geo, poly_vec);
 
    double spatial_momentum[STDIM-1];
-   double reG, imG;
+   double G_FT = 0.0;
 
    for(i=0; i<STDIM-1; i++)
    {
       spatial_momentum[i] = 0.0;
    }
 
-   polyakov_corr_FT(geo, polyakov_vector, &reG, &imG, spatial_momentum);
+   polyakov_corr_FT(geo, poly_vec, &G_FT, spatial_momentum);
 
-   fprintf(datafilep, "%.12g %.12g ", reG, imG);
+   fprintf(datafilep, "%.12g  ", G_FT);
 
    for(i = 0; i < STDIM - 1; i++)
    {
       int k;
-      double p_min, tmp_reG, tmp_imG;
+      double p_min, tmp_G_FT;
 
       p_min = PI2/(geo->d_size[i]);
       for(k=0; k<STDIM-1; k++)
@@ -990,24 +930,17 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
             spatial_momentum[k] = 0.0;
       }
 
-      polyakov_corr_FT(geo, polyakov_vector, &tmp_reG, &tmp_imG, spatial_momentum);
+      polyakov_corr_FT(geo, poly_vec, &tmp_G_FT, spatial_momentum);
 
       if(i==0)
-      {
-         reG = tmp_reG;
-         imG = tmp_imG;
-      }
+         G_FT = tmp_G_FT;      
       else
-      {
-         reG += tmp_reG;
-         imG += tmp_imG;
-      }
+         G_FT += tmp_G_FT;
    }
 
-   fprintf(datafilep, "%.12g %.12g ", reG, imG);
+   G_FT /= (STDIM - 1);
 
-   // Free the allocated memory
-   free(polyakov_vector);
+   fprintf(datafilep, "%.12g ", G_FT);
 
    // topological observables
    #if(STDIM==4)

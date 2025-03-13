@@ -56,6 +56,15 @@ void real_main(char *in_file)
     // initialize gauge configuration
     init_gauge_conf(&GC, &geo, &param);
 
+    // initialize polyakov loop vector
+    double complex * poly_vec;
+    int err = posix_memalign((void**) &poly_vec, DOUBLE_ALIGN, (size_t) geo.d_space_vol * sizeof(double complex));
+
+    if(err!=0)
+    {
+      fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__, __LINE__);
+      exit(EXIT_FAILURE);
+    }
     // acceptance of the metropolis update
     acc=0.0;
 
@@ -69,7 +78,7 @@ void real_main(char *in_file)
 
        if(count % param.d_measevery ==0 && count >= param.d_thermal)
          {
-         perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep);
+         perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep, poly_vec);
          }
 
        // save configuration for backup
@@ -125,6 +134,9 @@ void real_main(char *in_file)
 
     // free geometry
     free_geometry(&geo);
+
+    // free polyakov loop vector
+    free(poly_vec);
     }
 
 
