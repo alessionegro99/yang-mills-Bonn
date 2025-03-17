@@ -891,12 +891,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
    {
    int i;
    const int n_tr_def = (int)floor(NCOLOR/2);
-   double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1], poly_sqr[n_tr_def]; // +1 just to avoid warning if NCOLOR=1
-
-   for(i=0; i<n_tr_def; i++)
-   {
-      poly_sqr[i] = 0.0;
-   }
+   double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
 
    plaquette(GC, geo, &plaqs, &plaqt);
    polyakov_for_tracedef(GC, geo, polyre, polyim);
