@@ -890,7 +890,13 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              double complex * poly_vec)
    {
    int i;
-   double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
+   const int n_tr_def = (int)floor(NCOLOR/2);
+   double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1], poly_sqr[n_tr_def]; // +1 just to avoid warning if NCOLOR=1
+
+   for(i=0; i<n_tr_def; i++)
+   {
+      poly_sqr[i] = 0.0;
+   }
 
    plaquette(GC, geo, &plaqs, &plaqt);
    polyakov_for_tracedef(GC, geo, polyre, polyim);
@@ -916,6 +922,8 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
 
    fprintf(datafilep, "%.12g  ", G_FT);
 
+   G_FT = 0.0;
+
    for(i = 0; i < STDIM - 1; i++)
    {
       int k;
@@ -932,10 +940,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
 
       polyakov_corr_FT(geo, poly_vec, &tmp_G_FT, spatial_momentum);
 
-      if(i==0)
-         G_FT = tmp_G_FT;      
-      else
-         G_FT += tmp_G_FT;
+      G_FT += tmp_G_FT;
    }
 
    G_FT /= (STDIM - 1);
