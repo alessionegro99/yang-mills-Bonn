@@ -890,6 +890,8 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              double complex * poly_vec)
    {
    int i;
+   int n_tr_def = (int)floor(NCOLOR/2);
+   double poly_sq[n_tr_def];
    double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
 
    plaquette(GC, geo, &plaqs, &plaqt);
@@ -941,6 +943,40 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
 
    fprintf(datafilep, "%.12g ", G_FT);
 
+   GAUGE_GROUP matrix, matrix2;
+
+   for(i=0; i<n_tr_def; i++)
+   {
+      poly_sq[i] = 0.0;
+   }
+
+   for(long rsp = 0; rsp < geo->d_space_vol; rsp++)
+   {
+      long r;
+
+      r = sisp_and_t_to_si(geo, rsp, 0);
+
+      one(&matrix);
+      for(i = 0; i < geo->d_size[0]; i++)
+      {
+         times_equal(&matrix, &(GC->lattice[r][0]));
+         r = nnp(geo, r, 0);
+      }
+
+      one(&matrix2);
+      for(i = 0; i < n_tr_def; i++)
+      {
+         times_equal(&matrix2, &matrix);
+         poly_sq[i] += retr(&matrix2) * retr(&matrix2) + imtr(&matrix2) * imtr(&matrix2);
+      }
+   }
+
+   for(i=0; i<n_tr_def; i++)
+   {
+      poly_sq[i] *= geo->d_inv_space_vol;
+      fprintf(datafilep, "%.12g ", poly_sq[i]);
+   }
+   
    // topological observables
    #if(STDIM==4)
      int err;
