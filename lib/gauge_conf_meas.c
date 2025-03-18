@@ -890,7 +890,6 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              double complex * poly_vec)
    {
    int i;
-   const int n_tr_def = (int)floor(NCOLOR/2);
    double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
 
    plaquette(GC, geo, &plaqs, &plaqt);
