@@ -916,7 +916,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
 
    polyakov_corr_FT(geo, poly_vec, &G_FT, spatial_momentum);
 
-   fprintf(datafilep, "%.12g  ", G_FT);
+   fprintf(datafilep, "%.12g ", G_FT);
 
    G_FT = 0.0;
 
