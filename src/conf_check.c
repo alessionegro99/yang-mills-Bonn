@@ -107,7 +107,7 @@ void computehash(char *infile, int dim, long volume, char *hash) {
         if (endian() == 0) {
           SwapBytesDoubleComplex(&dc);
         }
-        MDF_Update(&mdContext, &dc, sizeof(double complex));
+        MD5_Update(&mdContext, &dc, sizeof(double complex));
 #elif NCOLOR == 2
         for (int k = 0; k < 4; k++) {
           double a = link.comp[k];
