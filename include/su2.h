@@ -694,16 +694,23 @@ inline void TensProd_init_Su2(TensProd *restrict TP,
   aux2[m2(1, 0)] = -A2->comp[2] + I * A2->comp[1];
   aux2[m2(1, 1)] = A2->comp[0] - I * A2->comp[3];
 
-  for (i = 0; i < 2; i++) {
-    for (j = 0; j < 2; j++) {
-      for (k = 0; k < 2; k++) {
-        for (l = 0; l < 2; l++) {
+#if NCOLOR == 1
+#define AUX  1
+#else
+#define AUX  2
+#endif
+
+  for (i = 0; i < AUX; i++) {
+    for (j = 0; j < AUX; j++) {
+      for (k = 0; k < AUX; k++) {
+        for (l = 0; l < AUX; l++) {
           TP->comp[i][j][k][l] = conj(aux1[m2(i, j)]) * aux2[m2(k, l)];
         }
       }
     }
   }
 
+#undef AUX
 #undef m2
 }
 

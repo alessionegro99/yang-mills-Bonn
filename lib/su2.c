@@ -683,5 +683,4 @@ int read_from_binary_file_bigen_Su2Vecs(FILE *fp, Su2Vecs * restrict A)
   return err;
   }
 
-
 #endif

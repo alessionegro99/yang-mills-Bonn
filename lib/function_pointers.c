@@ -13,165 +13,104 @@
 #include "../include/sun_monopoles.h"
 #include "../include/sun_upd.h"
 
-#include "../include/tens_prod.h"
-
 #include "../include/u1.h"
 #include "../include/u1_monopoles.h"
 #include "../include/u1_upd.h"
 
+#include "../include/tens_prod.h"
+
 #if NCOLOR == 1
 
-void (*one)(GAUGE_GROUP *A) = &one_U1;
+void (*one)(GAUGE_GROUP *A)  = &one_U1;
 void (*zero)(GAUGE_GROUP *A) = &zero_U1;
 
-void (*equal)(GAUGE_GROUP *A, GAUGE_GROUP const *const B) = &equal_U1;
-void (*equal_dag)(GAUGE_GROUP *A, GAUGE_GROUP const *const B) = &equal_dag_U1;
+void (*equal)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &equal_U1;
+void (*equal_dag)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &equal_dag_U1;
 
-void (*plus_equal)(GAUGE_GROUP *A, GAUGE_GROUP const *const B) = &plus_equal_U1;
-void (*plus_equal_dag)(GAUGE_GROUP *A,
-                       GAUGE_GROUP const *const B) = &plus_equal_dag_U1;
+void (*plus_equal)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &plus_equal_U1;
+void (*plus_equal_dag)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &plus_equal_dag_U1;
 
-void (*minus_equal)(GAUGE_GROUP *A,
-                    GAUGE_GROUP const *const B) = &minus_equal_U1;
-void (*minus_equal_times_real)(GAUGE_GROUP *A, GAUGE_GROUP const *const B,
-                               double r) = &minus_equal_times_real_U1;
-void (*minus_equal_dag)(GAUGE_GROUP *A,
-                        GAUGE_GROUP const *const B) = &minus_equal_dag_U1;
+void (*minus_equal)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &minus_equal_U1;
+void (*minus_equal_times_real)(GAUGE_GROUP *A, GAUGE_GROUP const * const B, double r) = &minus_equal_times_real_U1;
+void (*minus_equal_dag)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &minus_equal_dag_U1;
 
-void (*lin_comb)(GAUGE_GROUP *A, double b, GAUGE_GROUP const *const B, double c,
-                 GAUGE_GROUP const *const C) = &lin_comb_U1;
-void (*lin_comb_dag1)(GAUGE_GROUP *A, double b, GAUGE_GROUP const *const B,
-                      double c, GAUGE_GROUP const *const C) = &lin_comb_dag1_U1;
-void (*lin_comb_dag2)(GAUGE_GROUP *A, double b, GAUGE_GROUP const *const B,
-                      double c, GAUGE_GROUP const *const C) = &lin_comb_dag2_U1;
-void (*lin_comb_dag12)(GAUGE_GROUP *A, double b, GAUGE_GROUP const *const B,
-                       double c,
-                       GAUGE_GROUP const *const C) = &lin_comb_dag12_U1;
+void (*lin_comb)(GAUGE_GROUP *A, double b, GAUGE_GROUP const * const B, double c, GAUGE_GROUP const * const C) = &lin_comb_U1;
+void (*lin_comb_dag1)(GAUGE_GROUP *A, double b, GAUGE_GROUP const * const B, double c, GAUGE_GROUP const * const C) = &lin_comb_dag1_U1;
+void (*lin_comb_dag2)(GAUGE_GROUP *A, double b, GAUGE_GROUP const * const B, double c, GAUGE_GROUP const * const C) = &lin_comb_dag2_U1;
+void (*lin_comb_dag12)(GAUGE_GROUP *A, double b, GAUGE_GROUP const * const B, double c, GAUGE_GROUP const * const C) = &lin_comb_dag12_U1;
 
 void (*times_equal_real)(GAUGE_GROUP *A, double r) = &times_equal_real_U1;
-void (*times_equal_complex)(GAUGE_GROUP *A,
-                            double complex r) = &times_equal_complex_U1;
-void (*times_equal)(GAUGE_GROUP *A,
-                    GAUGE_GROUP const *const B) = &times_equal_U1;
-void (*times_equal_dag)(GAUGE_GROUP *A,
-                        GAUGE_GROUP const *B) = &times_equal_dag_U1;
+void (*times_equal_complex)(GAUGE_GROUP *A, double complex r) = &times_equal_complex_U1;
+void (*times_equal)(GAUGE_GROUP *A, GAUGE_GROUP const * const B) = &times_equal_U1;
+void (*times_equal_dag)(GAUGE_GROUP *A, GAUGE_GROUP const *B) = &times_equal_dag_U1;
 
-void (*times)(GAUGE_GROUP *A, GAUGE_GROUP const *const B,
-              GAUGE_GROUP const *const C) = &times_U1;
-void (*times_dag1)(GAUGE_GROUP *A, GAUGE_GROUP const *const B,
-                   GAUGE_GROUP const *const C) = &times_dag1_U1;
-void (*times_dag2)(GAUGE_GROUP *A, GAUGE_GROUP const *const B,
-                   GAUGE_GROUP const *const C) = &times_dag2_U1;
-void (*times_dag12)(GAUGE_GROUP *A, GAUGE_GROUP const *const B,
-                    GAUGE_GROUP const *const C) = &times_dag12_U1;
+void (*times)(GAUGE_GROUP *A, GAUGE_GROUP const * const B, GAUGE_GROUP const * const C) = &times_U1;
+void (*times_dag1)(GAUGE_GROUP *A, GAUGE_GROUP const * const B, GAUGE_GROUP const * const C) = &times_dag1_U1;
+void (*times_dag2)(GAUGE_GROUP *A, GAUGE_GROUP const * const B, GAUGE_GROUP const * const C) = &times_dag2_U1;
+void (*times_dag12)(GAUGE_GROUP *A, GAUGE_GROUP const * const B, GAUGE_GROUP const * const C) = &times_dag12_U1;
 
 void (*rand_matrix)(GAUGE_GROUP *A) = &rand_matrix_U1;
 
-double (*norm)(GAUGE_GROUP const *const A) = &norm_U1;
+double (*norm)(GAUGE_GROUP const * const A) = &norm_U1;
 
-double (*retr)(GAUGE_GROUP const *const A) = &retr_U1;
-double (*imtr)(GAUGE_GROUP const *const A) = &imtr_U1;
+double (*retr)(GAUGE_GROUP const * const A) = &retr_U1;
+double (*imtr)(GAUGE_GROUP const * const A) = &imtr_U1;
 
 void (*unitarize)(GAUGE_GROUP *A) = &unitarize_U1;
 void (*ta)(GAUGE_GROUP *A) = &ta_U1;
 void (*taexp)(GAUGE_GROUP *A) = &taexp_U1;
 
-void (*print_on_screen)(GAUGE_GROUP const *const A) = &print_on_screen_U1;
-int (*print_on_file)(FILE *fp, GAUGE_GROUP const *const A) = &print_on_file_U1;
-int (*print_on_binary_file_bigen)(FILE *fp, GAUGE_GROUP const *const A) =
-    &print_on_binary_file_bigen_U1;
-int (*read_from_file)(FILE *fp, GAUGE_GROUP *A) = &read_from_file_U1;
-int (*read_from_binary_file_bigen)(FILE *fp, GAUGE_GROUP *A) =
-    &read_from_binary_file_bigen_U1;
+void (*print_on_screen)(GAUGE_GROUP const * const A) = &print_on_screen_U1;
+int  (*print_on_file)(FILE *fp, GAUGE_GROUP const * const A) = &print_on_file_U1;
+int  (*print_on_binary_file_bigen)(FILE *fp, GAUGE_GROUP const * const A) = &print_on_binary_file_bigen_U1;
+int  (*read_from_file)(FILE *fp, GAUGE_GROUP *A) = &read_from_file_U1;
+int  (*read_from_binary_file_bigen)(FILE *fp, GAUGE_GROUP *A) = &read_from_binary_file_bigen_U1;
 
-void (*diag_matrix_times)(GAUGE_GROUP *restrict A, double const lambda[1],
-                          GAUGE_GROUP const *const restrict B) =
-    &diag_matrix_times_U1;
-void (*diag_matrix_times_dag)(GAUGE_GROUP *restrict A, double const lambda[1],
-                              GAUGE_GROUP const *const restrict B) =
-    &diag_matrix_times_dag_U1;
-void (*comp_outdiagnorm_of_X)(GAUGE_GROUP X_links[2 * STDIM],
-                              double const lambda[1], double *non_diag_contr) =
-    &comp_outdiagnorm_of_X_U1;
-void (*comp_MAG_gauge_transformation)(
-    GAUGE_GROUP X_links[2 * STDIM], double const lambda[1],
-    double OverRelaxParam,
-    GAUGE_GROUP *G_mag) = &comp_MAG_gauge_transformation_U1;
-void (*comp_functional_fmag)(GAUGE_GROUP X_links[2 * STDIM],
-                             double const lambda[1],
-                             double *fmag) = &comp_functional_fmag_U1;
-void (*diag_projection_single_site)(Gauge_Conf *GC, GAUGE_GROUP *link, long r,
-                                    int dir) = &diag_projection_single_site_U1;
+void (*diag_matrix_times)(GAUGE_GROUP * restrict A, double const lambda[1], GAUGE_GROUP const * const restrict B) = &diag_matrix_times_U1;
+void (*diag_matrix_times_dag)(GAUGE_GROUP * restrict A, double const lambda[1], GAUGE_GROUP const * const restrict B) = &diag_matrix_times_dag_U1;
+void (*comp_outdiagnorm_of_X)(GAUGE_GROUP X_links[2*STDIM], double const lambda[1], double *non_diag_contr) = &comp_outdiagnorm_of_X_U1;
+void (*comp_MAG_gauge_transformation) (GAUGE_GROUP X_links[2*STDIM], double const lambda[1], double OverRelaxParam, GAUGE_GROUP *G_mag) = &comp_MAG_gauge_transformation_U1;
+void (*comp_functional_fmag) (GAUGE_GROUP X_links[2*STDIM], double const lambda[1], double *fmag) = &comp_functional_fmag_U1;
+void (*diag_projection_single_site) (Gauge_Conf *GC, GAUGE_GROUP *link, long r, int dir) = &diag_projection_single_site_U1;
 
-void (*single_heatbath)(GAUGE_GROUP *link,
-                        GAUGE_GROUP const *const staple) = &single_heatbath_U1;
-void (*single_overrelaxation)(GAUGE_GROUP *link,
-                              GAUGE_GROUP const *const staple) =
-    &single_overrelaxation_U1;
-void (*cool)(GAUGE_GROUP *link, GAUGE_GROUP const *const staple) = &cool_U1;
+void (*TensProd_init)(TensProd *TP, GAUGE_GROUP const * const A1, GAUGE_GROUP const * const A2) = &TensProd_init_U1;
 
-void (*one_vecs)(GAUGE_VECS *restrict A) = &one_U1Vecs;
-void (*zero_vecs)(GAUGE_VECS *restrict A) = &zero_U1Vecs;
+void (*single_heatbath)(GAUGE_GROUP *link, GAUGE_GROUP const * const staple) = &single_heatbath_U1;
+void (*single_overrelaxation)(GAUGE_GROUP *link, GAUGE_GROUP const * const staple) = &single_overrelaxation_U1;
+void (*cool)(GAUGE_GROUP *link, GAUGE_GROUP const * const staple) = &cool_U1;
 
-void (*equal_vecs)(GAUGE_VECS *restrict A,
-                   GAUGE_VECS const *const restrict B) = &equal_U1Vecs;
-void (*conjugate_vecs)(GAUGE_VECS *restrict A) = &conjugate_U1Vecs;
-void (*minus_equal_vecs)(GAUGE_VECS *restrict A,
-                         GAUGE_VECS const *const restrict B) =
-    &minus_equal_U1Vecs;
-void (*plus_equal_vecs)(GAUGE_VECS *restrict A,
-                        GAUGE_VECS const *const restrict B) =
-    &plus_equal_U1Vecs;
-void (*times_equal_real_vecs)(GAUGE_VECS *restrict A,
-                              double r) = &times_equal_real_U1Vecs;
-void (*times_equal_real_single_vecs)(GAUGE_VECS *restrict A, double r,
-                                     int j) = &times_equal_real_single_U1Vecs;
-void (*times_equal_complex_single_vecs)(GAUGE_VECS *restrict A,
-                                        double complex r, int j) =
-    &times_equal_complex_single_U1Vecs;
+void (*one_vecs)(GAUGE_VECS * restrict A)=&one_U1Vecs;
+void (*zero_vecs)(GAUGE_VECS * restrict A)=&zero_U1Vecs;
 
-double (*norm_vecs)(GAUGE_VECS const *const restrict A) = &norm_U1Vecs;
-void (*normalize_vecs)(GAUGE_VECS *restrict A) = &normalize_U1Vecs;
+void (*equal_vecs)(GAUGE_VECS * restrict A, GAUGE_VECS const * const restrict B)=&equal_U1Vecs;
+void (*conjugate_vecs)(GAUGE_VECS * restrict A)=&conjugate_U1Vecs;
+void (*minus_equal_vecs)(GAUGE_VECS * restrict A, GAUGE_VECS const * const restrict B)=&minus_equal_U1Vecs;
+void (*plus_equal_vecs)(GAUGE_VECS * restrict A, GAUGE_VECS const * const restrict B)=&plus_equal_U1Vecs;
+void (*times_equal_real_vecs)(GAUGE_VECS * restrict A, double r)=&times_equal_real_U1Vecs;
+void (*times_equal_real_single_vecs)(GAUGE_VECS * restrict A, double r, int j)=&times_equal_real_single_U1Vecs;
+void (*times_equal_complex_single_vecs)(GAUGE_VECS * restrict A, double complex r, int j)=&times_equal_complex_single_U1Vecs;
 
-void (*rand_vecs)(GAUGE_VECS *restrict A) = &rand_vec_U1Vecs;
+double (*norm_vecs)(GAUGE_VECS const * const restrict A)=&norm_U1Vecs;
+void (*normalize_vecs)(GAUGE_VECS * restrict A)=&normalize_U1Vecs;
 
-double (*re_scal_prod_vecs)(GAUGE_VECS const *const restrict v1,
-                            GAUGE_VECS const *const restrict v2) =
-    &re_scal_prod_U1Vecs;
-double (*re_scal_prod_single_vecs)(GAUGE_VECS const *const restrict v1,
-                                   GAUGE_VECS const *const restrict v2, int a,
-                                   int b) = &re_scal_prod_single_U1Vecs;
-void (*matrix_times_vector_single_vecs)(
-    GAUGE_VECS *restrict v1, GAUGE_GROUP const *const restrict matrix,
-    GAUGE_VECS const *const restrict v2,
-    int i) = &matrix_times_vector_single_U1Vecs;
-void (*matrix_times_vector_all_vecs)(
-    GAUGE_VECS *restrict v1, GAUGE_GROUP const *const restrict matrix,
-    GAUGE_VECS const *const restrict v2) = &matrix_times_vector_all_U1Vecs;
-void (*rotate_two_components_vecs)(
-    GAUGE_VECS *restrict v1, GAUGE_VECS const *const restrict v2, int i, int j,
-    double angle) = &rotate_two_components_U1Vecs;
-void (*vector_tensor_vector_vecs)(
-    GAUGE_GROUP *restrict matrix, GAUGE_VECS const *const restrict v1,
-    GAUGE_VECS const *const restrict v2) = &vector_tensor_vector_U1Vecs;
+void (*rand_vecs)(GAUGE_VECS * restrict A)=&rand_vec_U1Vecs;
 
-void (*init_FMatrix_vecs)(FMatrix *restrict fmatrix,
-                          GAUGE_VECS const *const restrict v1) =
-    &init_FMatrix_U1Vecs;
-double complex (*HiggsU1Obs_vecs)(GAUGE_VECS const *const restrict v1) =
-    &HiggsU1Obs_U1Vecs;
+double (*re_scal_prod_vecs)(GAUGE_VECS const * const restrict v1, GAUGE_VECS const * const restrict v2)=&re_scal_prod_U1Vecs;
+double (*re_scal_prod_single_vecs)(GAUGE_VECS const * const restrict v1, GAUGE_VECS const * const restrict v2, int a, int b)=&re_scal_prod_single_U1Vecs;
+void (*matrix_times_vector_single_vecs)(GAUGE_VECS * restrict v1, GAUGE_GROUP const * const restrict matrix, GAUGE_VECS const * const restrict v2, int i)=&matrix_times_vector_single_U1Vecs;
+void (*matrix_times_vector_all_vecs)(GAUGE_VECS * restrict v1, GAUGE_GROUP const * const restrict matrix, GAUGE_VECS const * const restrict v2)=&matrix_times_vector_all_U1Vecs;
+void (*rotate_two_components_vecs)(GAUGE_VECS * restrict v1, GAUGE_VECS const * const restrict v2, int i, int j, double angle)=&rotate_two_components_U1Vecs;
+void (*vector_tensor_vector_vecs)(GAUGE_GROUP * restrict matrix, GAUGE_VECS const * const restrict v1, GAUGE_VECS const * const restrict v2)=&vector_tensor_vector_U1Vecs;
 
-int (*print_on_file_vecs)(FILE *fp,
-                          GAUGE_VECS const *const A) = &print_on_file_U1Vecs;
-int (*print_on_binary_file_bigen_vecs)(FILE *fp, GAUGE_VECS const *const A) =
-    &print_on_binary_file_bigen_U1Vecs;
-int (*read_from_file_vecs)(FILE *fp, GAUGE_VECS *A) = &read_from_file_U1Vecs;
-int (*read_from_binary_file_bigen_vecs)(FILE *fp, GAUGE_VECS *A) =
-    &read_from_binary_file_bigen_U1Vecs;
+void (*init_FMatrix_vecs)(FMatrix * restrict fmatrix, GAUGE_VECS const * const restrict v1)=&init_FMatrix_U1Vecs;
+double complex (*HiggsU1Obs_vecs)(GAUGE_VECS const * const restrict v1)=&HiggsU1Obs_U1Vecs;
 
-void (*single_overrelaxation_vecs)(GAUGE_VECS *restrict link,
-                                   GAUGE_VECS const *const staple) =
-    &single_overrelaxation_U1Vecs;
+int (*print_on_file_vecs)(FILE *fp, GAUGE_VECS const * const A)=&print_on_file_U1Vecs;
+int (*print_on_binary_file_bigen_vecs)(FILE *fp, GAUGE_VECS const * const A)=&print_on_binary_file_bigen_U1Vecs;
+int (*read_from_file_vecs)(FILE *fp, GAUGE_VECS *A)=&read_from_file_U1Vecs;
+int (*read_from_binary_file_bigen_vecs)(FILE *fp, GAUGE_VECS *A)=&read_from_binary_file_bigen_U1Vecs;
+
+void (*single_overrelaxation_vecs)(GAUGE_VECS *restrict link, GAUGE_VECS const * const staple)=&single_overrelaxation_U1Vecs;
 
 #elif NCOLOR == 2
 

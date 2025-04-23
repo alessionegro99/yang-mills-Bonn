@@ -1,7 +1,7 @@
 #ifndef SUN_UPD_C
 #define SUN_UPD_C
 
-#include
+#include"../include/macro.h"
 
 #include<complex.h>
 #include<math.h>

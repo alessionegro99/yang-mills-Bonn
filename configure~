@@ -652,6 +652,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+U1_ONLY_FALSE
+U1_ONLY_TRUE
 N_higgs
 ST_dim
 Num_threads
@@ -4870,6 +4872,15 @@ printf "%s\n" "#define NCOLOR ${N_c}" >>confdefs.h
 
 fi
 
+ if test "x$N_c" = "x1"; then
+  U1_ONLY_TRUE=
+  U1_ONLY_FALSE='#'
+else
+  U1_ONLY_TRUE='#'
+  U1_ONLY_FALSE=
+fi
+
+
 if test x${Num_levels} = x; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING:
    *****
@@ -5093,6 +5104,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${U1_ONLY_TRUE}" && test -z "${U1_ONLY_FALSE}"; then
+  as_fn_error $? "conditional \"U1_ONLY\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
