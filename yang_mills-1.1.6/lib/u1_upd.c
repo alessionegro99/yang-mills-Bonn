@@ -1,11 +1,12 @@
 #ifndef U1_UPD_C
 #define U1_UPD_C
 
+#include "../include/macro.h"
+
 #include <complex.h>
 #include <math.h>
 #include <stdio.h>
 
-#include "../include/macro.h"
 #include "../include/random.h"
 #include "../include/u1.h"
 #include "../include/u1_upd.h"

@@ -1,12 +1,13 @@
 #ifndef U1_H
 #define U1_H
 
+#include "macro.h"
+
 #include <complex.h>
 #include <math.h>
 #include <stdio.h>
 
 #include "flavour_matrix.h"
-#include "macro.h"
 #include "tens_prod.h"
 
 typedef struct U1 {

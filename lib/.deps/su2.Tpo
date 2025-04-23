@@ -1,4 +1,5 @@
-lib/su2.o: lib/su2.c /usr/include/stdc-predef.h /usr/include/math.h \
+lib/su2.o: lib/su2.c /usr/include/stdc-predef.h lib/../include/macro.h \
+ lib/../include/../config.h /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -31,17 +32,20 @@ lib/su2.o: lib/su2.c /usr/include/stdc-predef.h /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
  /usr/include/x86_64-linux-gnu/bits/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h lib/../include/aligncheck.h \
- lib/../include/../include/macro.h lib/../include/../include/../config.h \
- lib/../include/endianness.h /usr/include/complex.h \
- /usr/include/x86_64-linux-gnu/bits/mathdef.h \
+ lib/../include/macro.h lib/../include/endianness.h \
+ /usr/include/complex.h /usr/include/x86_64-linux-gnu/bits/mathdef.h \
  /usr/include/x86_64-linux-gnu/bits/cmathcalls.h \
- lib/../include/flavour_matrix.h lib/../include/macro.h \
- lib/../include/macro.h lib/../include/random.h lib/../include/su2.h \
- lib/../include/flavour_matrix.h lib/../include/tens_prod.h
+ lib/../include/flavour_matrix.h lib/../include/random.h \
+ lib/../include/su2.h lib/../include/flavour_matrix.h \
+ lib/../include/tens_prod.h
 /usr/include/stdc-predef.h:
+lib/../include/macro.h:
+lib/../include/../config.h:
 /usr/include/math.h:
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
 /usr/include/features.h:
@@ -78,19 +82,18 @@ lib/su2.o: lib/su2.c /usr/include/stdc-predef.h /usr/include/math.h \
 /usr/include/x86_64-linux-gnu/bits/stdio.h:
 /usr/include/x86_64-linux-gnu/bits/stdio2.h:
 /usr/include/stdlib.h:
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
 /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 /usr/include/x86_64-linux-gnu/bits/stdlib.h:
 lib/../include/aligncheck.h:
-lib/../include/../include/macro.h:
-lib/../include/../include/../config.h:
+lib/../include/macro.h:
 lib/../include/endianness.h:
 /usr/include/complex.h:
 /usr/include/x86_64-linux-gnu/bits/mathdef.h:
 /usr/include/x86_64-linux-gnu/bits/cmathcalls.h:
 lib/../include/flavour_matrix.h:
-lib/../include/macro.h:
-lib/../include/macro.h:
 lib/../include/random.h:
 lib/../include/su2.h:
 lib/../include/flavour_matrix.h:

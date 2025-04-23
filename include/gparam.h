@@ -1,10 +1,10 @@
 #ifndef GPARAM_H
 #define GPARAM_H
 
+#include"macro.h"
+
 #include<stdio.h>
 #include<time.h>
-
-#include"macro.h"
 
 typedef struct GParam {
   // lattice dimensions

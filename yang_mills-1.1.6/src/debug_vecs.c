@@ -1,12 +1,13 @@
 #ifndef DEBUG_VECS_C
 #define DEBUG_VECS_C
 
+#include"../include/macro.h"
+
 #include<complex.h>
 #include<math.h>
 #include<stdlib.h>
 
 #include"../include/function_pointers.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 
 

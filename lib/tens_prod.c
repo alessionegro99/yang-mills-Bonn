@@ -1,13 +1,14 @@
 #ifndef TENS_PROD_C
 #define TENS_PROD_C
 
+#include"../include/macro.h"
+
 #include<complex.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 
 #include"../include/endianness.h"
-#include"../include/macro.h"
 #include"../include/tens_prod.h"
 
 

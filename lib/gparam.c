@@ -1,6 +1,8 @@
 #ifndef GPARAM_C
 #define GPARAM_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
@@ -9,7 +11,6 @@
 
 #include"../include/endianness.h"
 #include"../include/gparam.h"
-#include"../include/macro.h"
 
 
 // remove from input file white/empty lines and comments

@@ -1,11 +1,12 @@
 #ifndef FUNCTION_POINTERS_H
 #define FUNCTION_POINTERS_H
 
+#include"macro.h"
+
 #include<complex.h>
 #include<stdio.h>
 
 #include"flavour_matrix.h"
-#include"macro.h"
 #include"su2_upd.h"
 #include"sun.h"
 #include"sun_upd.h"

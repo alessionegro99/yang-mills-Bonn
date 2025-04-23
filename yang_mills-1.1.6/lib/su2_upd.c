@@ -1,11 +1,12 @@
 #ifndef SU2_UPD_C
 #define SU2_UPD_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdio.h>
 
 #include"../include/gparam.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/su2.h"
 #include"../include/su2_upd.h"

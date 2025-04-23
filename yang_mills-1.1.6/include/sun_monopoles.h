@@ -1,8 +1,9 @@
 #ifndef SUN_MONOPOLES_H
 #define SUN_MONOPOLES_H
 
-#include"gauge_conf.h"
 #include"macro.h"
+
+#include"gauge_conf.h"
 #include"sun.h"
 
 void comp_MAG_gauge_transformation_SuN(SuN X_links[2*STDIM],

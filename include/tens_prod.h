@@ -1,11 +1,11 @@
 #ifndef TENS_PROD_H
 #define TENS_PROD_H
 
+#include"macro.h"
+
 #include<complex.h>
 #include<stdio.h>
 #include<stdlib.h>
-
-#include"macro.h"
 
 // see Luscher Weisz JHEP 0109 p. 010 (2001)   (hep-lat/0108014)
 

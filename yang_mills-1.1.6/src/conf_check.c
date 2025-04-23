@@ -1,8 +1,8 @@
 #ifndef CONF_CHECK_C
 #define CONF_CHECK_C
 
-#include "../include/endianness.h"
 #include "../include/macro.h"
+#include "../include/endianness.h"
 
 #include <openssl/md5.h>
 #include <stdio.h>

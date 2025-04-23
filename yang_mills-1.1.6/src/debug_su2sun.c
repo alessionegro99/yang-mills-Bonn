@@ -1,11 +1,12 @@
 #ifndef DEBUG_SU2SUN_C
 #define DEBUG_SU2SUN_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdlib.h>
 
 #include"../include/flavour_matrix.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/su2.h"
 #include"../include/sun.h"

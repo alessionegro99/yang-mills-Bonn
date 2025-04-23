@@ -1,6 +1,8 @@
 #ifndef SU2_C
 #define SU2_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
@@ -8,7 +10,6 @@
 #include"../include/aligncheck.h"
 #include"../include/endianness.h"
 #include"../include/flavour_matrix.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/su2.h"
 

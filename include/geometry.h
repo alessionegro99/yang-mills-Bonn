@@ -1,7 +1,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include"macro.h"
+
 
 typedef struct Geometry {
    int d_size[STDIM];

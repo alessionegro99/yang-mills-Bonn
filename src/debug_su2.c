@@ -1,11 +1,12 @@
 #ifndef DEBUG_SU2_C
 #define DEBUG_SU2_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
 
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/su2.h"
 #include"../include/su2_upd.h"

@@ -1,13 +1,15 @@
 #ifndef SU2_H
 #define SU2_H
 
+#include "macro.h"
+
 #include <complex.h>
 #include <math.h>
 #include <stdio.h>
 
 #include "flavour_matrix.h"
-#include "macro.h"
 #include "tens_prod.h"
+
 
 //
 // An Su2 matrix is represented as comp[0]+i\sum_{j=1}^3 comp[j]\sigma_j where
@@ -1120,3 +1122,4 @@ int read_from_binary_file_swap_Su2Vecs(FILE *fp, Su2Vecs *restrict A);
 int read_from_binary_file_bigen_Su2Vecs(FILE *fp, Su2Vecs *restrict A);
 
 #endif
+

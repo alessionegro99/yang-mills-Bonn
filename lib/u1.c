@@ -1,6 +1,8 @@
 #ifndef U1_C
 #define U1_C
 
+#include "../include/macro.h"
+
 #include <complex.h>
 #include <math.h>
 #include <stdio.h>
@@ -9,7 +11,6 @@
 #include "../include/aligncheck.h"
 #include "../include/endianness.h"
 #include "../include/flavour_matrix.h"
-#include "../include/macro.h"
 #include "../include/random.h"
 #include "../include/tens_prod.h"
 #include "../include/u1.h"

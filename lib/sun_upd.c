@@ -1,12 +1,13 @@
 #ifndef SUN_UPD_C
 #define SUN_UPD_C
 
+#include
+
 #include<complex.h>
 #include<math.h>
 #include<stdio.h>
 
 #include"../include/gparam.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/su2.h"
 #include"../include/su2_upd.h"

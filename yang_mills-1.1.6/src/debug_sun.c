@@ -1,10 +1,11 @@
 #ifndef DEBUG_SUN_C
 #define DEBUG_SUN_C
 
+#include"../include/macro.h"
+
 #include<math.h>
 #include<stdlib.h>
 
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/sun.h"
 #include"../include/sun_upd.h"

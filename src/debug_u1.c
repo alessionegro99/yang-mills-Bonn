@@ -1,11 +1,12 @@
 #ifndef DEBUG_U1_C
 #define DEBUG_U1_C
 
+#include "../include/macro.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/macro.h"
 #include "../include/random.h"
 #include "../include/u1.h"
 #include "../include/u1_upd.h"

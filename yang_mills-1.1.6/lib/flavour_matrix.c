@@ -1,10 +1,11 @@
 #ifndef FLAVOUR_MATRIX_C
 #define FLAVOUR_MATRIX_C
 
+#include"../include/macro.h"
+
 #include<complex.h>
 #include<math.h>
 
-#include"../include/macro.h"
 #include"../include/flavour_matrix.h"
 
 // A=0

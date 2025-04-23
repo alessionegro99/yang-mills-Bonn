@@ -1,10 +1,10 @@
 #ifndef SU2_MONOPOLES_H
 #define SU2_MONOPOLES_H
 
+#include"macro.h"
 #include"gauge_conf.h"
 #include"su2.h"
 #include"sun.h"
-#include"macro.h"
 
 void comp_MAG_gauge_transformation_Su2(Su2 X_links[2*STDIM],
                                        double const lambda[2],

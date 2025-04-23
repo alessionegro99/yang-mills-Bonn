@@ -1,10 +1,10 @@
 #ifndef ALIGNCHECK_H
 #define ALIGNCHECK_H
 
+#include"macro.h"
+
 #include<stdlib.h>
 #include<stdio.h>
-
-#include"../include/macro.h"
 
 inline void is_aligned(const void * p, size_t byte_align, char* file, int line)
   {

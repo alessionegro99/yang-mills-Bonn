@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/macro.h"
+#include 
 #include "../include/random.h"
 #include "../include/u1.h"
 #include "../include/u1_upd.h"

@@ -1,6 +1,8 @@
 #ifndef SUN_C
 #define SUN_C
 
+#include"../include/macro.h"
+
 #include<complex.h>
 #include<math.h>
 #include<stdio.h>
@@ -10,7 +12,6 @@
 #include"../include/aligncheck.h"
 #include"../include/endianness.h"
 #include"../include/flavour_matrix.h"
-#include"../include/macro.h"
 #include"../include/random.h"
 #include"../include/sun.h"
 #include"../include/sun_upd.h"

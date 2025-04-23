@@ -1,12 +1,12 @@
 #ifndef FLAVOUR_MATRIX_H
 #define FLAVOUR_MATRIX_H
 
+#include"macro.h"
+
 #include<complex.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
-
-#include"macro.h"
 
 typedef struct FMatrix {
    double complex comp[NHIGGS*NHIGGS] __attribute__((aligned(DOUBLE_ALIGN)));

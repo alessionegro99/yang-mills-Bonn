@@ -895,7 +895,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
   }
 
 // topological observables
-#if (STDIM == 4)
+#if (STDIM == 4 && NCOLOR>1 || (STDIM==2 && NCOLOR==1))
   int err;
   double *charge, *meanplaq, charge_nocooling;
 

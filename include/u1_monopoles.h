@@ -1,10 +1,9 @@
 #ifndef U1_MONOPOLES_H
 #define U1_MONOPOLES_H
 
-#include "gauge_conf.h"
 #include "macro.h"
-#include "sun.h"
 #include "u1.h"
+#include "gauge_conf.h"
 
 void comp_outdiagnorm_of_X_U1(U1 X_links[2 * STDIM], double const lambda[1],
                               double *non_diag_contr);
