@@ -12,7 +12,7 @@ src/conf_check.o: src/conf_check.c /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
  /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
  /usr/include/x86_64-linux-gnu/bits/cmathcalls.h src/../include/macro.h \
- ../../build/yang-mills-Bonn/config.h /usr/include/openssl/md5.h \
+ src/../include/../config.h /usr/include/openssl/md5.h \
  /usr/include/openssl/macros.h \
  /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
  /usr/include/x86_64-linux-gnu/openssl/configuration.h \
@@ -76,7 +76,7 @@ src/../include/endianness.h:
 /usr/include/x86_64-linux-gnu/bits/floatn-common.h:
 /usr/include/x86_64-linux-gnu/bits/cmathcalls.h:
 src/../include/macro.h:
-../../build/yang-mills-Bonn/config.h:
+src/../include/../config.h:
 /usr/include/openssl/md5.h:
 /usr/include/openssl/macros.h:
 /usr/include/x86_64-linux-gnu/openssl/opensslconf.h:

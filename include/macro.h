@@ -1,7 +1,7 @@
 #ifndef MACRO_H
 #define MACRO_H
 
-#include "../../build/yang-mills-Bonn/config.h"
+#include "../config.h"
 
 #if NCOLOR == 1
 #define GAUGE_GROUP U1
