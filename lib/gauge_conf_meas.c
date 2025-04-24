@@ -275,6 +275,81 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
   *energy = ris * geo->d_inv_vol;
 }
 
+//
+double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
+               int j, int Wi, int Wj, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (j >= STDIM || i >= STDIM) {
+    fprintf(stderr, "i or j too large: (i=%d || j=%d) >= %d (%s, %d)\n", i, j,
+            STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  //
+  //       ^ i
+  //       |       r2
+  //    r3 +---<---+
+  //       |       |
+  //       V       ^ Wi
+  //       |       |
+  //       +--->---+---> j
+  //       r   Wj  r1
+  //
+
+  one(&matrix);
+  // now we are in r
+  for (aux = 0; aux < Wj; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+  }
+  // now we are in r1
+  for (aux = 0; aux < Wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  // now we are in r2
+  for (aux = 0; aux < Wj; aux++) {
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  // now we are in r3
+  for (aux = 0; aux < Wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+  // now we are in r
+
+  return retr(&matrix);
+}
+
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int Wt,
+               int Ws) {
+  int j;
+  long r;
+  double ris;
+
+  ris = 0;
+  for (r = 0; r < geo->d_volume; r++) {
+    for (j = 1; j < STDIM; j++) {
+      ris += Wilsonp(GC, geo, 0, j, Wt, Ws, r);
+    }
+  }
+
+  ris *= geo->d_inv_vol;
+  ris /= (STDIM - 1);
+
+  return ris;
+}
+
 // compute the mean Polyakov loop (the trace of)
 void polyakov(Gauge_Conf const *const GC, Geometry const *const geo,
               double *repoly, double *impoly) {
@@ -895,7 +970,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
   }
 
 // topological observables
-#if (STDIM == 4 && NCOLOR>1 || (STDIM==2 && NCOLOR==1))
+#if (STDIM == 4 && NCOLOR > 1 || (STDIM == 2 && NCOLOR == 1))
   int err;
   double *charge, *meanplaq, charge_nocooling;
 

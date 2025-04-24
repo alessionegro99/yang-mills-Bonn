@@ -195,6 +195,18 @@ void plaquette(Gauge_Conf const * const GC,
 void clover_disc_energy(Gauge_Conf const * const GC,
                         Geometry const * const geo,
                         double *energy);
+double Wilsonp(Gauge_Conf const *const GC,
+                Geometry const *const geo,
+                int i,
+                int j,
+                int Wi,
+                int Wj,
+                long r);
+double Wilsont(Gauge_Conf const *const GC, 
+               Geometry const *const geo,
+               int Wt,
+               int Ws);
+
 void polyakov(Gauge_Conf const * const GC,
               Geometry const * const geo,
               double *repoly,
