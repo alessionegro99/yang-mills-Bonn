@@ -277,7 +277,7 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
 
 //
 double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
-               int j, int Wi, int Wj, long r) {
+               int j, int wi, int wj, long r) {
   int aux;
   GAUGE_GROUP matrix;
 
@@ -299,30 +299,30 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
   //       |       r2
   //    r3 +---<---+
   //       |       |
-  //       V       ^ Wi
+  //       V       ^ wi
   //       |       |
   //       +--->---+---> j
-  //       r   Wj  r1
+  //       r   wj  r1
   //
 
   one(&matrix);
   // now we are in r
-  for (aux = 0; aux < Wj; aux++) {
+  for (aux = 0; aux < wj; aux++) {
     times_equal(&matrix, &(GC->lattice[r][j]));
     r = nnp(geo, r, j);
   }
   // now we are in r1
-  for (aux = 0; aux < Wi; aux++) {
+  for (aux = 0; aux < wi; aux++) {
     times_equal(&matrix, &(GC->lattice[r][i]));
     r = nnp(geo, r, i);
   }
   // now we are in r2
-  for (aux = 0; aux < Wj; aux++) {
+  for (aux = 0; aux < wj; aux++) {
     r = nnm(geo, r, j);
     times_equal_dag(&matrix, &(GC->lattice[r][j]));
   }
   // now we are in r3
-  for (aux = 0; aux < Wi; aux++) {
+  for (aux = 0; aux < wi; aux++) {
     r = nnm(geo, r, i);
     times_equal_dag(&matrix, &(GC->lattice[r][i]));
   }
@@ -331,8 +331,8 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
   return retr(&matrix);
 }
 
-double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int Wt,
-               int Ws) {
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
+               int ws) {
   int j;
   long r;
   double ris;
@@ -340,7 +340,7 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int Wt,
   ris = 0;
   for (r = 0; r < geo->d_volume; r++) {
     for (j = 1; j < STDIM; j++) {
-      ris += Wilsonp(GC, geo, 0, j, Wt, Ws, r);
+      ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
     }
   }
 
@@ -799,12 +799,24 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
                                Geometry const *const geo,
                                GParam const *const param, FILE *datafilep,
                                FILE *monofilep) {
+  int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt, polyre, polyim;
 
   plaquette(GC, geo, &plaqs, &plaqt);
   polyakov(GC, geo, &polyre, &polyim);
 
   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", plaqs, plaqt, polyre, polyim);
+
+  max_wt = MIN(10, (int)geo->d_size[0] / 4);
+  for (i = 1; i < STDIM; i++) {
+    max_ws = MIN(10, (int)geo->d_size[i] / 4);
+  }
+
+  for (wt = 1; wt <= max_wt; wt++) {
+    for (ws = 1; ws <= max_ws; ws++){
+      fprintf(datafilep, "%.12g ", Wilsont(GC, geo, wt, ws));
+    }
+  }
 
 // topological observables
 #if ((STDIM == 4 && NCOLOR > 1) || (STDIM == 2 && NCOLOR == 1))

@@ -14,6 +14,9 @@
 #define GAUGE_VECS SuNVecs
 #endif
 
+#define MIN(A,B) (((A)<(B))?(A):(B))
+#define MAX(A,B) (((A)>(B))?(A):(B))
+
 // function to access matrix elements
 #define m(X, Y) ((X) * NCOLOR + (Y))  // for gauge group
 #define mf(X, Y) ((X) * NHIGGS + (Y)) // for higgs field

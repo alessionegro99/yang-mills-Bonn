@@ -199,13 +199,13 @@ double Wilsonp(Gauge_Conf const *const GC,
                 Geometry const *const geo,
                 int i,
                 int j,
-                int Wi,
-                int Wj,
+                int wi,
+                int wj,
                 long r);
 double Wilsont(Gauge_Conf const *const GC, 
                Geometry const *const geo,
-               int Wt,
-               int Ws);
+               int wt,
+               int ws);
 
 void polyakov(Gauge_Conf const * const GC,
               Geometry const * const geo,
