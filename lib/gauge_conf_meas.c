@@ -333,12 +333,15 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
 
 double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
                int ws) {
-  int j;
   long r;
   double ris;
 
   ris = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
   for (r = 0; r < geo->d_volume; r++) {
+    int j;
     for (j = 1; j < STDIM; j++) {
       ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
     }
@@ -813,7 +816,7 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 
   for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= max_ws; ws++){
+    for (ws = 1; ws <= max_ws; ws++) {
       fprintf(datafilep, "%.12g ", Wilsont(GC, geo, wt, ws));
     }
   }
