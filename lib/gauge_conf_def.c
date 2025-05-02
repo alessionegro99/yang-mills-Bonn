@@ -81,6 +81,28 @@ void init_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
   }
 }
 
+// application of open boundary conditions in all the spatial directions
+void apply_obc_spatial(Gauge_Conf *GC, Geometry const *const geo) {
+  long r;
+  int i, cartcoord[STDIM], value, valuep;
+  GAUGE_GROUP aux;
+  zero(&aux);
+
+  // INITIALIZE
+  for (r = 0; r < geo->d_volume; r++) {
+    si_to_cart(cartcoord, r, geo);
+
+    for (i = 1; i < STDIM; i++) {
+      value = cartcoord[i];
+
+      valuep = value + 1;
+      if (valuep >= geo->d_size[i]) {
+        equal(&(GC->lattice[r][i]), &aux);
+      }
+    }
+  } // end of loop on r
+}
+
 void read_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
                      GParam const *const param) {
   FILE *fp;

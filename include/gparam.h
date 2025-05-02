@@ -69,6 +69,7 @@ void init_data_file(FILE **dataf, GParam const * const param);
 void init_mon_file(FILE **monof, GParam const * const param);
 
 void print_parameters_local(GParam const * const param, time_t time_start, time_t time_end);
+void print_parameters_local_obc(GParam const * const param, time_t time_start, time_t time_end);
 
 void print_parameters_polycorr(GParam * param, time_t time_start, time_t time_end);
 void print_parameters_polycorr_higgs(GParam * param, time_t time_start, time_t time_end, double acc);

@@ -51,6 +51,8 @@ typedef struct Gauge_Conf {
 void init_gauge_conf(Gauge_Conf *GC,
                      Geometry const * const geo,
                      GParam const * const param);
+void apply_obc_spatial(Gauge_Conf *GC,
+                       Geometry const *const geo);
 void read_gauge_conf(Gauge_Conf *GC,
                      Geometry const * const geo,
                      GParam const * const param);
@@ -247,6 +249,10 @@ void perform_measures_localobs(Gauge_Conf const * const GC,
                                GParam const * const param,
                                FILE *datafilep,
                                FILE *monofilep);
+
+void perform_measures_localobs_obc(Gauge_Conf const *const GC,
+                                   Geometry const *const geo,
+                                   FILE *datafilep);
 
 void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,

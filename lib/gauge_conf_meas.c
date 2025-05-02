@@ -896,6 +896,18 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 }
 
+void perform_measures_localobs_obc(Gauge_Conf const *const GC,
+                                   Geometry const *const geo, FILE *datafilep) {
+  long r, i;
+  for (r = 0; r < geo->d_volume; r++) {
+    for (i = 0; i < STDIM; i++) {
+      fprintf(datafilep, "%.12f ", retr(&(GC->lattice[r][i])));
+    }
+  }
+  fprintf(datafilep, "\n");
+
+}
+
 // perform local observables in the case of trace deformation, it computes all
 // the order parameters
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,

@@ -148,7 +148,6 @@ void init_geometry(Geometry *geo, int insize[STDIM])
   #endif
   }  
 
-
 // free memory
 void free_geometry(Geometry *geo)
   {
