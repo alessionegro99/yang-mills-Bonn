@@ -65,14 +65,12 @@ void real_main(char *in_file)
        {
         perform_measures_localobs_obc(&GC, &geo, datafilep);
 
-       update(&GC, &geo, &param);
+        update(&GC, &geo, &param);
 
-       perform_measures_localobs_obc(&GC, &geo, datafilep);
-
-    //    if(count % param.d_measevery ==0 && count >= param.d_thermal)
-    //      {
-    //      perform_measures_localobs_obc(&GC, &geo, datafilep);
-    //      }
+        if(count % param.d_measevery ==0 && count >= param.d_thermal)
+          {
+          perform_measures_localobs_obc(&GC, &geo, datafilep);
+          }
 
        // save configuration for backup
        if(param.d_saveconf_back_every!=0)

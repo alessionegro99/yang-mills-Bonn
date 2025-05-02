@@ -458,7 +458,8 @@ inline void unitarize_U1(U1 *restrict A) {
   double p;
 
   p = norm_U1(A);
-  A->comp /= p;
+  if (p != 0.)
+    A->comp /= p;
 }
 
 // antihermitian part (NO TRACELESS!)

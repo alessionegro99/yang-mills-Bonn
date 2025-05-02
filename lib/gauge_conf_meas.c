@@ -898,14 +898,13 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo, FILE *datafilep) {
-  long r, i;
-  for (r = 0; r < geo->d_volume; r++) {
-    for (i = 0; i < STDIM; i++) {
-      fprintf(datafilep, "%.12f ", retr(&(GC->lattice[r][i])));
-    }
+  double plaqp;
+
+  for (long r = 0; r < geo->d_volume; r++) {
+    plaqp = plaquettep(GC, geo, r, 2, 1);
+    fprintf(datafilep, "%.12g ", plaqp);
   }
   fprintf(datafilep, "\n");
-
 }
 
 // perform local observables in the case of trace deformation, it computes all

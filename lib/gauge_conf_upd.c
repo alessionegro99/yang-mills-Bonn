@@ -707,7 +707,7 @@ void overrelaxation(Gauge_Conf *GC,
   GAUGE_GROUP stap;
 
   #ifndef THETA_MODE
-    (void) param; // just to avoid wornings
+    (void) param; // just to avoid warnings
     calcstaples_wilson(GC, geo, r, i, &stap);
   #else
     calcstaples_with_topo(GC, geo, param, r, i, &stap);

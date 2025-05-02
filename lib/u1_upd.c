@@ -44,7 +44,7 @@ void single_heatbath_U1(U1 *restrict link, U1 const *const restrict staple) {
       times_equal_dag_U1(link, staple);
       times_equal_real_U1(link, 1. / k);
     }
-  } else {
+  } else if(k!=0){
     rand_matrix_U1(link);
   }
 }
