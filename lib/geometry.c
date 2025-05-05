@@ -22,7 +22,7 @@ void (*si_to_sisp_and_t_compute)(long *sisp, int *t, long si, Geometry const * c
 // initialize geometry
 void init_geometry(Geometry *geo, int insize[STDIM])
   {
-  int i, value, valuep, valuem, err;
+  int i, j, k, value, valuep, valuem, err;
   long r, rm, rp;
   int cartcoord[STDIM];
 
@@ -48,19 +48,48 @@ void init_geometry(Geometry *geo, int insize[STDIM])
   geo->d_inv_space_vol=1.0/((double) geo->d_space_vol);
 
   // total number of faces for a ipercube of dimension STDIM-1 
-  // each direction with n_k points is
-  // n = \sum_{i=1}^{STDIM-1}(n_i)\prod_{i=1, j\neq i}^{STDIM-1}(n_j-1)
+  // n = \sum_{i\leq 1<j\leq (STDIM-1)}(n_i-1)(n_j-1)\prod_{k\neq j,i}(n_k)
   geo->d_nfaces = 0;
-  for(i=1; i<STDIM; i++)
-    {
+  for(i=1; i<STDIM; i++){
+    for (j = i + 1; j < STDIM; j++){
       long aux;
-      int j;
-      aux = 1;
-      for(j=1; ((j<STDIM) && (j!=i)); j++){
-        aux *= (geo->d_size[j]-1);
+      aux = (geo->d_size[i]-1) * (geo->d_size[j]-1);
+
+      for (k=1; k<STDIM; k++){
+        if(k!= i && k!= j){
+          aux *= (geo->d_size[k]);
+        }
       }
-      (geo->d_nfaces) += ((geo->d_size[i])*aux);
+      geo->d_nfaces += aux;
     }
+  }
+
+  // total number of faces for a ipercube of dimention STDIM
+  // orthogonal to the 0 (time) direction
+  // n = \sum_{i\leq 1<j\leq (STDIM-1), i=0 or j=0}(n_i-1)(n_j-1)\prod_{l\neq i,j}(n_l)
+  int d_size_aux[STDIM];
+  d_size_aux[0] = (geo->d_size[0] + 1);
+  for(i=1; i<STDIM; i++){
+    d_size_aux[i] = geo->d_size[i];
+  }
+  geo->d_nfaces_temp = 0;
+  for (i = 0; i < STDIM; i++) {
+    for (j = i + 1; j < STDIM; j++) {
+      if (i != 0 && j != 0) continue;  // skip pairs orthogonal to 0
+  
+      long aux;
+      aux = (d_size_aux[i]-1) * (d_size_aux[j]-1);
+  
+      for (k = 0; k < STDIM; k++) {
+        if (k != i && k != j) {
+          aux *= (d_size_aux[k]);
+        }
+      }
+  
+      geo->d_nfaces_temp += aux;
+    }
+  }
+  geo->d_nfaces_temp *= (geo->d_size[0])/(geo->d_size[0]-1);
 
   // allocate memory
   err=posix_memalign((void**)&(geo->d_nnp), (size_t)INT_ALIGN, (size_t) geo->d_volume * sizeof(long *));

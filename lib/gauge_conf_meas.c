@@ -246,43 +246,42 @@ void plaquette(Gauge_Conf const *const GC, Geometry const *const geo,
 
 // compute the mean plaquette (spatial, temporal) with obc
 void plaquette_obc(Gauge_Conf const *const GC, Geometry const *const geo,
-  double *plaqs, double *plaqt) {
-long r;
-double ps, pt;
+                   double *plaqs, double *plaqt) {
+  long r;
+  double ps, pt;
 
-ps = 0.0;
-pt = 0.0;
+  ps = 0.0;
+  pt = 0.0;
 
 #ifdef OPENMP_MODE
 #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : pt)    \
-reduction(+ : ps)
+    reduction(+ : ps)
 #endif
-for (r = 0; r < (geo->d_volume); r++) {
-int i, j;
-i = 0;
-for (j = 1; j < STDIM; j++) {
-pt += plaquettep(GC, geo, r, i, j);
-}
+  for (r = 0; r < (geo->d_volume); r++) {
+    int i, j;
+    i = 0;
+    for (j = 1; j < STDIM; j++) {
+      pt += plaquettep(GC, geo, r, i, j);
+    }
 
-for (i = 1; i < STDIM; i++) {
-for (j = i + 1; j < STDIM; j++) {
-ps += plaquettep(GC, geo, r, i, j);
-}
-}
-}
+    for (i = 1; i < STDIM; i++) {
+      for (j = i + 1; j < STDIM; j++) {
+        ps += plaquettep(GC, geo, r, i, j);
+      }
+    }
+  }
 
-if (STDIM > 2) {
-ps /= ((double)geo->d_size[0]);
-ps /= ((double)geo->d_nfaces);
-} else {
-ps = 0.0;
-}
+  if (STDIM > 2) {
+    ps /= ((double)geo->d_size[0]);
+    ps /= ((double)geo->d_nfaces);
+  } else {
+    ps = 0.0;
+  }
 
-pt *= geo->d_inv_vol;
-pt /= ((double)STDIM - 1);
+  pt /= ((double)geo->d_nfaces_temp);
 
-*plaqs = ps;
-*plaqt = pt;
+  *plaqs = ps;
+  *plaqt = pt;
 }
 
 // compute the clover discretization of
@@ -939,32 +938,39 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo, FILE *datafilep) {
-  double pt, ps;
-  long r;
-  int i, j;
 
-  pt = 0.0;
-  ps = 0.0;
+  double plaqs, plaqt;
 
-  i = 0;
-  for (j = 1; j < STDIM; j++) {
-    pt += plaquettep(GC, geo, r, i, j);
-  }
+  plaquette_obc(GC, geo, &plaqs, &plaqt);
 
-  for (i = 1; i < STDIM; i++) {
-    for (j = i + 1; j < STDIM; j++) {
-      ps += plaquettep(GC, geo, r, i, j);
-    }
-  }
+  fprintf(datafilep, "%ld %ld %.12g %.12g ", geo->d_nfaces, geo->d_nfaces_temp, plaqs, plaqt);
+  // double pt, ps;
+  // long r;
+  // int i, j;
 
-  GAUGE_GROUP stap;
-  int cartcoord[STDIM];
+  // pt = 0.0;
+  // ps = 0.0;
 
-  for (long r = 0; r < geo->d_volume; r++) {
-    si_to_cart(cartcoord, r, geo);
-    calcstaples_wilson(GC, geo, r, 2, &stap);   
-    fprintf(datafilep, "%d %d %d %.12g ", cartcoord[0], cartcoord[1], cartcoord[2],norm(&stap));
-  }
+  // i = 0;
+  // for (j = 1; j < STDIM; j++) {
+  //   pt += plaquettep(GC, geo, r, i, j);
+  // }
+
+  // for (i = 1; i < STDIM; i++) {
+  //   for (j = i + 1; j < STDIM; j++) {
+  //     ps += plaquettep(GC, geo, r, i, j);
+  //   }
+  // }
+
+  // GAUGE_GROUP stap;
+  // int cartcoord[STDIM];
+
+  // for (long r = 0; r < geo->d_volume; r++) {
+  //   si_to_cart(cartcoord, r, geo);
+  //   calcstaples_wilson(GC, geo, r, 2, &stap);
+  //   fprintf(datafilep, "%d %d %d %.12g ", cartcoord[0], cartcoord[1],
+  //   cartcoord[2],norm(&stap));
+  // }
 
   fprintf(datafilep, "\n");
 }
