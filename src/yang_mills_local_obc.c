@@ -65,7 +65,7 @@ void real_main(char *in_file)
        {
         perform_measures_localobs_obc(&GC, &geo, datafilep);
 
-        update(&GC, &geo, &param);
+        update_obc(&GC, &geo, &param);
 
         if(count % param.d_measevery ==0 && count >= param.d_thermal)
           {

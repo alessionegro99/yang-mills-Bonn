@@ -487,6 +487,12 @@ int metropolis_with_tracedef(Gauge_Conf *GC,
 void update(Gauge_Conf *GC,
             Geometry const * const geo,
             GParam const * const param);
+void update_obc(Gauge_Conf *GC,
+              Geometry const * const geo,
+              GParam const * const param);
+void update_obc_alt(Gauge_Conf *GC,
+                Geometry const * const geo,
+                GParam const * const param);
 void update_with_trace_def(Gauge_Conf *GC,
                            Geometry const * const geo,
                            GParam const * const param,

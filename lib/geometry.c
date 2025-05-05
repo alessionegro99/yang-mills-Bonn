@@ -47,6 +47,21 @@ void init_geometry(Geometry *geo, int insize[STDIM])
   geo->d_inv_vol=1.0/((double) geo->d_volume);
   geo->d_inv_space_vol=1.0/((double) geo->d_space_vol);
 
+  // total number of faces for a ipercube of dimension STDIM-1 
+  // each direction with n_k points is
+  // n = \sum_{i=1}^{STDIM-1}(n_i)\prod_{i=1, j\neq i}^{STDIM-1}(n_j-1)
+  geo->d_nfaces = 0;
+  for(i=1; i<STDIM; i++)
+    {
+      long aux;
+      int j;
+      aux = 1;
+      for(j=1; ((j<STDIM) && (j!=i)); j++){
+        aux *= (geo->d_size[j]-1);
+      }
+      (geo->d_nfaces) += ((geo->d_size[i])*aux);
+    }
+
   // allocate memory
   err=posix_memalign((void**)&(geo->d_nnp), (size_t)INT_ALIGN, (size_t) geo->d_volume * sizeof(long *));
   if(err!=0)

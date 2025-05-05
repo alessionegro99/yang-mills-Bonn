@@ -10,7 +10,8 @@ typedef struct Geometry {
    double d_inv_vol;        // 1 / tot. volume
    long d_space_vol;        // spatial component of the volume
    double d_inv_space_vol;  // 1 / spatial component of the volume
-
+   long d_nfaces;     // total number of faces for a ipercube of dimension STDIM-1
+    
    long **d_nnp;      // d_nnp[r][i] = next neighbour (on the local lattice) in dir.  i of the site r
    long **d_nnm;      // d_nnm[r][i] = next neighbour (on the local lattice) in dir. -i of the site r
    int *d_timeslice;  // d_timeslice[r]  = time component of r
