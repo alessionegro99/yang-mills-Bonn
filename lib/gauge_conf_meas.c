@@ -965,18 +965,25 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 }
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
-                                   Geometry const *const geo, FILE *datafilep) {
-  int i, rsp, ws, wt, max_wt, max_ws;
+                                   Geometry const *const geo, GParam const *const param,
+                                   FILE *datafilep) {
+  int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt;
 
-  // int cartcoordtmp[STDIM], ttmp;
-  // long rtmp, rsptmp;
+  int cartcoord[STDIM], t;
+  long r, rsp;
 
   plaquette_obc(GC, geo, &plaqs, &plaqt);
 
   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
+  
+  cartcoord[0] = 0;
+  for(i=1; i<STDIM; i++){
+    cartcoord[i]=param->d_r0[i-1];
+  }
 
-  rsp = 0;
+  r = cart_to_si(cartcoord, geo);
+  si_to_sisp_and_t(&rsp, &t, geo, r);
 
   max_wt = MIN(10, (int)geo->d_size[0] / 4);
   for (i = 1; i < STDIM; i++) {
@@ -985,7 +992,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
 
   for (wt = 1; wt <= max_wt; wt++) {
     for (ws = 1; ws <= max_ws; ws++) {
-    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp));
+    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); // todo change 0->rsp
     }
   }
 

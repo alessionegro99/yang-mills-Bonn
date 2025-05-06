@@ -62,7 +62,7 @@ void real_main(char *in_file)
     time(&time1);
 
     // check on the starting conf
-    perform_measures_localobs_obc(&GC, &geo, datafilep);
+    perform_measures_localobs_obc(&GC, &geo, &param, datafilep);
     // count starts from 1 to avoid problems using %
     for(count=1; count < param.d_sample + 1; count++)
        {        
@@ -70,7 +70,7 @@ void real_main(char *in_file)
 
         if(count % param.d_measevery ==0 && count >= param.d_thermal)
           {
-          perform_measures_localobs_obc(&GC, &geo, datafilep);
+          perform_measures_localobs_obc(&GC, &geo, &param, datafilep);
           }
 
        // save configuration for backup
@@ -140,23 +140,24 @@ void print_template_input(void)
     }
   else
     {
-    fprintf(fp, "size 4 4 4 4\n");
+    fprintf(fp, "size 4 4 4\n");
     fprintf(fp,"\n");
-    fprintf(fp, "beta 5.705\n");
-    fprintf(fp, "theta 1.5\n");
+    fprintf(fp, "beta 1.4\n");
+    fprintf(fp, "theta 0\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
-    fprintf(fp, "overrelax 5\n");
+    fprintf(fp, "overrelax 4\n");
     fprintf(fp, "measevery 1\n");
     fprintf(fp, "monomeas  0  # 1=monopoles measures are performed\n");
+    fprintf(fp, "r0 0 0  # x^1_0, x^2_0, ... , x^{STDIM-1}_0\n");
     fprintf(fp,"\n");
     fprintf(fp, "start                   0  # 0=ordered  1=random  2=from saved configuration\n");
-    fprintf(fp, "saveconf_back_every     5  # if 0 does not save, else save backup configurations every ... updates\n");
-    fprintf(fp, "saveconf_analysis_every 5  # if 0 does not save, else save configurations for analysis every ... updates\n");
+    fprintf(fp, "saveconf_back_every     0  # if 0 does not save, else save backup configurations every ... updates\n");
+    fprintf(fp, "saveconf_analysis_every 0  # if 0 does not save, else save configurations for analysis every ... updates\n");
     fprintf(fp, "\n");
-    fprintf(fp, "coolsteps  3     # number of cooling steps to be used\n");
-    fprintf(fp, "coolrepeat 5     # number of times 'coolsteps' are repeated\n");
+    fprintf(fp, "coolsteps  0     # number of cooling steps to be used\n");
+    fprintf(fp, "coolrepeat 0     # number of times 'coolsteps' are repeated\n");
     fprintf(fp,"\n");
     fprintf(fp, "#output files\n");
     fprintf(fp, "conf_file  conf.dat\n");

@@ -23,6 +23,7 @@ typedef struct GParam {
   int d_overrelax;
   int d_measevery;
   int d_mon_meas; // if 1 monopoles measures are performed.
+  int d_r0[STDIM-1];
 
   // initialization & saving
   int d_start;

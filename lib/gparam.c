@@ -224,6 +224,19 @@ void readinput(char *in_file, GParam *param)
                   param->d_mon_meas=temp_i;
                   }
 
+                 else if(strncmp(str, "r0", 2)==0)
+                 {
+                 for(i=0; i<STDIM-1; i++)
+                    {
+                    err=fscanf(input, "%d", &temp_i);
+                    if(err!=1)
+                      {
+                      fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                      exit(EXIT_FAILURE);
+                      }
+                    param->d_r0[i]=temp_i;
+                    }
+                 }
 
            else if(strncmp(str, "start", 5)==0)
                   { 
@@ -713,6 +726,12 @@ fprintf(fp, "thermal:   %d\n", param->d_thermal);
 fprintf(fp, "overrelax: %d\n", param->d_overrelax);
 fprintf(fp, "measevery: %d\n", param->d_measevery);
 fprintf(fp, "monopoles: %d\n", param->d_mon_meas);
+fprintf(fp, "r0: (%d", param->d_r0[0]);
+for(i=2; i<STDIM; i++)
+   {
+   fprintf(fp, ", %d", param->d_r0[i-1]);
+   }
+fprintf(fp, ")");
 fprintf(fp, "\n");
 
 fprintf(fp, "start:                   %d\n", param->d_start);
