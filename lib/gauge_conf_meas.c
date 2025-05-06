@@ -315,7 +315,8 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
   *energy = ris * geo->d_inv_vol;
 }
 
-//
+// Wilson loop (real trace of) of dimension wi and wj in directions i and j at
+// position r
 double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
                int j, int wi, int wj, long r) {
   int aux;
@@ -371,8 +372,11 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
   return retr(&matrix);
 }
 
+// temporal Wilson loop of dimension wt and ws averaged over the lattice and
+// over (STDIM-1) spatial dimensions
 double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
                int ws) {
+  int j;
   long r;
   double ris;
 
@@ -381,13 +385,37 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
 #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
 #endif
   for (r = 0; r < geo->d_volume; r++) {
-    int j;
     for (j = 1; j < STDIM; j++) {
       ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
     }
   }
 
   ris *= geo->d_inv_vol;
+  ris /= (STDIM - 1);
+
+  return ris;
+}
+
+// temporal Wilson loop of dimension wt and ws at spatial position rsp, averaged
+// over the temporal periodic direction and (STDIM-1) spatial dimensions
+double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+                   int wt, int ws, long rsp) {
+  long r;
+  int j, t;
+  double ris;
+
+  ris = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (t = 0; t < geo->d_size[0]; t++) {
+    r = sisp_and_t_to_si(geo, rsp, t);
+    for (j = 1; j < STDIM; j++) {
+      ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
+    }
+  }
+
+  ris /= geo->d_size[0];
   ris /= (STDIM - 1);
 
   return ris;
@@ -938,39 +966,28 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo, FILE *datafilep) {
-
+  int i, rsp, ws, wt, max_wt, max_ws;
   double plaqs, plaqt;
+
+  // int cartcoordtmp[STDIM], ttmp;
+  // long rtmp, rsptmp;
 
   plaquette_obc(GC, geo, &plaqs, &plaqt);
 
-  fprintf(datafilep, "%ld %ld %.12g %.12g ", geo->d_nfaces, geo->d_nfaces_temp, plaqs, plaqt);
-  // double pt, ps;
-  // long r;
-  // int i, j;
+  fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
 
-  // pt = 0.0;
-  // ps = 0.0;
+  rsp = 0;
 
-  // i = 0;
-  // for (j = 1; j < STDIM; j++) {
-  //   pt += plaquettep(GC, geo, r, i, j);
-  // }
+  max_wt = MIN(10, (int)geo->d_size[0] / 4);
+  for (i = 1; i < STDIM; i++) {
+    max_ws = MIN(10, (int)geo->d_size[i] / 4);
+  }
 
-  // for (i = 1; i < STDIM; i++) {
-  //   for (j = i + 1; j < STDIM; j++) {
-  //     ps += plaquettep(GC, geo, r, i, j);
-  //   }
-  // }
-
-  // GAUGE_GROUP stap;
-  // int cartcoord[STDIM];
-
-  // for (long r = 0; r < geo->d_volume; r++) {
-  //   si_to_cart(cartcoord, r, geo);
-  //   calcstaples_wilson(GC, geo, r, 2, &stap);
-  //   fprintf(datafilep, "%d %d %d %.12g ", cartcoord[0], cartcoord[1],
-  //   cartcoord[2],norm(&stap));
-  // }
+  for (wt = 1; wt <= max_wt; wt++) {
+    for (ws = 1; ws <= max_ws; ws++) {
+    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp));
+    }
+  }
 
   fprintf(datafilep, "\n");
 }
