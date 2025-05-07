@@ -225,6 +225,8 @@ double Wilsont_obc(Gauge_Conf const *const GC,
 double nonplanarWilsont_obc(Gauge_Conf const *const GC,
                             Geometry const *const geo,
                             int wt,
+                            int s1,
+                            int s2,
                             int ws1,
                             int ws2,
                             long rsp);

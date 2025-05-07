@@ -502,8 +502,8 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
 // position rsp, averaged over the temporal periodic direction and (STDIM-1)
 // spatial dimensions
 double nonplanarWilsont_obc(Gauge_Conf const *const GC,
-                            Geometry const *const geo, int wt, int ws1, int ws2,
-                            long rsp) {
+                            Geometry const *const geo, int wt, int s1, int s2,
+                            int ws1, int ws2, long rsp) {
   long r;
   int t;
   double ris;
@@ -514,11 +514,10 @@ double nonplanarWilsont_obc(Gauge_Conf const *const GC,
 #endif
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
-    ris += nonplanarWilsonp(GC, geo, 0, 1, 2, wt, ws1, ws2, r);
+    ris += nonplanarWilsonp(GC, geo, 0, s1, s2, wt, ws1, ws2, r);
   }
 
   ris /= geo->d_size[0];
-  ris /= (STDIM - 1);
 
   return ris;
 }
@@ -1094,7 +1093,8 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
 
   for (wt = 1; wt <= max_wt; wt++) {
     for (ws = 1; ws <= max_ws; ws++) {
-      //fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); // uncomment to print Wilsont_obc
+      // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
+      // uncomment to print Wilsont_obc
     }
   }
 
@@ -1103,19 +1103,22 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
   }
 
-  // r = sqrt(5) more boundary
+  // r = sqrt(5)
   for (wt = 1; wt <= max_wt; wt++) {
-    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 1, rsp));
-  }
-
-  // r = sqrt(5) more boundary
-  for (wt = 1; wt <= max_wt; wt++) {
-    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 1, rsp));
+    double aux;
+    aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
+    aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
+    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
+    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
+    fprintf(datafilep, "%.12g ", aux/4.0);
   }
 
   // r = sqrt(8)
   for (wt = 1; wt <= max_wt; wt++) {
-    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 2, rsp));
+    double aux;
+    aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
+    fprintf(datafilep, "%.12g ", aux/2.0);
   }
 
   fprintf(datafilep, "\n");
