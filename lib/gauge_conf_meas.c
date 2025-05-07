@@ -372,6 +372,83 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
   return retr(&matrix);
 }
 
+// non planar Wilson loop (real trace of) of dimension wi, wj, wk in directions
+// i, j and k at position r
+double nonplanarWilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
+                        int i, int j, int k, int wi, int wj, int wk, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (j >= STDIM || i >= STDIM || k >= STDIM) {
+    fprintf(stderr,
+            "i or j or k too large: (i=%d || j=%d || k=%d) >= %d (%s, %d)\n", i,
+            j, k STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  //      ^ i
+  //      |
+  //   r5 +--------+r4
+  //      |        |
+  //      |Wi      |
+  //      |        |
+  //      |        |
+  //      +--------+--> j
+  //     r    Wj   r1
+
+  //      ^ i
+  //      |
+  //   r4 +--------+r3
+  //      |        |
+  //      |        |Wi
+  //      |        |
+  //      |        |
+  //      +--------+--> k
+  //     r1   Wk   r2
+
+  one(&matrix);
+  // now we are in r
+  for (aux = 0; aux < wj; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+  }
+  // now we are in r1
+  for (aux = 0; aux < wk; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][k]));
+    r = nnp(geo, r, k);
+  }
+  // now we are in r2
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  // now we are in r3
+  for (aux = 0; aux < wk; aux++) {
+    r = nnm(geo, r, k);
+    times_equal_dag(&matrix, &(GC->lattice[r][k]));
+  }
+  // now we are in r4
+  for (aux = 0; aux < wj; aux++) {
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  // now we are in r5
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+  // now we are in r5
+
+  return retr(&matrix);
+}
+
 // temporal Wilson loop of dimension wt and ws averaged over the lattice and
 // over (STDIM-1) spatial dimensions
 double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
@@ -413,6 +490,31 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
     for (j = 1; j < STDIM; j++) {
       ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
     }
+  }
+
+  ris /= geo->d_size[0];
+  ris /= (STDIM - 1);
+
+  return ris;
+}
+
+// temporal non planar Wilson loop of dimension wt and ws1, ws2 at spatial
+// position rsp, averaged over the temporal periodic direction and (STDIM-1)
+// spatial dimensions
+double nonplanarWilsont_obc(Gauge_Conf const *const GC,
+                            Geometry const *const geo, int wt, int ws1, int ws2,
+                            long rsp) {
+  long r;
+  int t;
+  double ris;
+
+  ris = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (t = 0; t < geo->d_size[0]; t++) {
+    r = sisp_and_t_to_si(geo, rsp, t);
+    ris += nonplanarWilsonp(GC, geo, 0, 1, 2, wt, ws1, ws2, r);
   }
 
   ris /= geo->d_size[0];
@@ -965,8 +1067,8 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 }
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
-                                   Geometry const *const geo, GParam const *const param,
-                                   FILE *datafilep) {
+                                   Geometry const *const geo,
+                                   GParam const *const param, FILE *datafilep) {
   int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt;
 
@@ -976,10 +1078,10 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   plaquette_obc(GC, geo, &plaqs, &plaqt);
 
   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
-  
+
   cartcoord[0] = 0;
-  for(i=1; i<STDIM; i++){
-    cartcoord[i]=param->d_r0[i-1];
+  for (i = 1; i < STDIM; i++) {
+    cartcoord[i] = param->d_r0[i - 1];
   }
 
   r = cart_to_si(cartcoord, geo);
@@ -992,8 +1094,28 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
 
   for (wt = 1; wt <= max_wt; wt++) {
     for (ws = 1; ws <= max_ws; ws++) {
-    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); // todo change 0->rsp
+      //fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); // uncomment to print Wilsont_obc
     }
+  }
+
+  // r = 1
+  for (wt = 1; wt <= max_wt; wt++) {
+    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+  }
+
+  // r = sqrt(5) more boundary
+  for (wt = 1; wt <= max_wt; wt++) {
+    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 1, rsp));
+  }
+
+  // r = sqrt(5) more boundary
+  for (wt = 1; wt <= max_wt; wt++) {
+    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 1, rsp));
+  }
+
+  // r = sqrt(8)
+  for (wt = 1; wt <= max_wt; wt++) {
+    fprintf(datafilep, "%.12g ", nonplanarWilsont_obc(GC, geo, wt, 2, 2, rsp));
   }
 
   fprintf(datafilep, "\n");
