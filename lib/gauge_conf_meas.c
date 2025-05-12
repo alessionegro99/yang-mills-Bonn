@@ -1091,12 +1091,12 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     max_ws = MIN(10, (int)geo->d_size[i] / 4);
   }
 
-  // for (wt = 1; wt <= max_wt; wt++) {
-  //   for (ws = 1; ws <= max_ws; ws++) {
-  //     // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
-  //     // uncomment to print Wilsont_obc
-  //   }
-  // }
+  for (wt = 1; wt <= max_wt; wt++) {
+    for (ws = 1; ws <= max_ws; ws++) {
+      // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
+      // uncomment to print Wilsont_obc
+    }
+  }
 
   if (geo->d_size[1] == 3) {
     // r = 1
@@ -1179,7 +1179,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
   polyvec(GC, geo, poly_vec);
 
   double spatial_momentum[STDIM - 1];
-  656854249492381 double G_FT = 0.0;
+  double G_FT = 0.0;
 
   for (i = 0; i < STDIM - 1; i++) {
     spatial_momentum[i] = 0.0;
