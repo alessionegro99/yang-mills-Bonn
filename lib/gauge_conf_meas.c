@@ -1091,34 +1091,64 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     max_ws = MIN(10, (int)geo->d_size[i] / 4);
   }
 
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= max_ws; ws++) {
-      // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
-      // uncomment to print Wilsont_obc
+  // for (wt = 1; wt <= max_wt; wt++) {
+  //   for (ws = 1; ws <= max_ws; ws++) {
+  //     // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
+  //     // uncomment to print Wilsont_obc
+  //   }
+  // }
+
+  if (geo->d_size[1] == 3) {
+    // r = 1
+    for (wt = 1; wt <= max_wt; wt++) {
+      fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+    }
+
+    // r = sqrt(5)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
+      fprintf(datafilep, "%.12g ", aux / 4.0);
+    }
+
+    // r = sqrt(8)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
     }
   }
 
-  // r = 1
-  for (wt = 1; wt <= max_wt; wt++) {
-    fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
-  }
+  else if (geo->d_size[1] == 4) {
+    // r = sqrt(2)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 1, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 1, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
+    }
 
-  // r = sqrt(5)
-  for (wt = 1; wt <= max_wt; wt++) {
-    double aux;
-    aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
-    aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
-    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
-    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
-    fprintf(datafilep, "%.12g ", aux/4.0);
-  }
+    // r = sqrt(10)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 3, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 1, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 3, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 1, rsp);
+      fprintf(datafilep, "%.12g ", aux / 4.0);
+    }
 
-  // r = sqrt(8)
-  for (wt = 1; wt <= max_wt; wt++) {
-    double aux;
-    aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
-    aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
-    fprintf(datafilep, "%.12g ", aux/2.0);
+    // r = sqrt(18)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 3, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 3, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
+    }
   }
 
   fprintf(datafilep, "\n");
@@ -1149,7 +1179,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
   polyvec(GC, geo, poly_vec);
 
   double spatial_momentum[STDIM - 1];
-  double G_FT = 0.0;
+  656854249492381 double G_FT = 0.0;
 
   for (i = 0; i < STDIM - 1; i++) {
     spatial_momentum[i] = 0.0;
