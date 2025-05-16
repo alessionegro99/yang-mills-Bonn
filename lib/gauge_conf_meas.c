@@ -1151,6 +1151,36 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
   }
 
+  else if (geo->d_size[1] == 5) {
+    // r = sqrt(5)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
+      fprintf(datafilep, "%.12g ", aux / 4.0);
+    }
+
+    // r = sqrt(25)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 3, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 4, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 3, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 4, rsp);
+      fprintf(datafilep, "%.12g ", aux / 4.0);
+    }
+
+    // r = sqrt(32)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 4, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 4, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
+    }
+  }
+
   fprintf(datafilep, "\n");
 }
 
