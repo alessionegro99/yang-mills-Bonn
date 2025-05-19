@@ -1181,6 +1181,34 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
   }
 
+  else if (geo->d_size[1] == 7) {
+    // r = sqrt(8)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
+    }
+
+    // r = sqrt(40)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 6, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 2, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 6, rsp);
+      fprintf(datafilep, "%.12g ", aux / 4.0);
+    }
+
+    // r = sqrt(72)
+    for (wt = 1; wt <= max_wt; wt++) {
+      double aux;
+      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 6, rsp);
+      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 6, rsp);
+      fprintf(datafilep, "%.12g ", aux / 2.0);
+    }
+  }
+
   fprintf(datafilep, "\n");
 }
 
