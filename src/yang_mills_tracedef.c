@@ -25,7 +25,7 @@ void real_main(char *in_file)
     GParam param;
 
     char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
-    int count;
+    int count, err;
     double acc, acc_local;
     FILE *datafilep, *monofilep;
     time_t time1, time2;
@@ -58,7 +58,11 @@ void real_main(char *in_file)
 
     // initialize polyakov loop vector
     double complex * poly_vec;
-    int err = posix_memalign((void**) &poly_vec, DOUBLE_ALIGN, (size_t) geo.d_space_vol * sizeof(double complex));
+    err = posix_memalign((void**) &poly_vec, DOUBLE_ALIGN, (size_t) geo.d_space_vol * sizeof(double complex));
+
+    // initialize polyakov loop correlator vector
+    double complex * poly_corr;
+    err = posix_memalign((void**) &poly_corr, DOUBLE_ALIGN, (size_t) param.d_poly_corr * sizeof(double complex));
 
     if(err!=0)
     {
@@ -78,7 +82,7 @@ void real_main(char *in_file)
 
        if(count % param.d_measevery ==0 && count >= param.d_thermal)
          {
-         perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep, poly_vec);
+         perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep, poly_vec, poly_corr);
          }
 
        // save configuration for backup
@@ -137,6 +141,9 @@ void real_main(char *in_file)
 
     // free polyakov loop vector
     free(poly_vec);
+
+    // free polyakov loop correlator vector
+    free(poly_corr);
     }
 
 
@@ -158,6 +165,7 @@ void print_template_input(void)
     fprintf(fp, "beta 5.705\n");
     fprintf(fp, "htracedef  1.1\n");
     fprintf(fp, "theta 1.5\n");
+    fprintf(fp, "maxpolycorr 3\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");

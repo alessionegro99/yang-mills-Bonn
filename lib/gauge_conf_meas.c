@@ -603,10 +603,10 @@ void polyakov_corr(Geometry const * const geo,
       #pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) reduction(+ : imp)
       #endif
       for(rsp=0; rsp<geo->d_space_vol; rsp++)
-         {
+        {
 	      int j, t_tmp;
 	      long r, rsp_tmp;
-         double complex p1, p2;
+        double complex p1, p2;
 	  
 	      for(j=1; j<STDIM; j++)
 	         {	
@@ -887,7 +887,8 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              GParam const * const param,
                                              FILE *datafilep,
                                              FILE *monofilep,
-                                             double complex * poly_vec)
+                                             double complex * poly_vec,
+                                             double complex * poly_corr)
    {
    int i;
    int n_tr_def = (int)floor(NCOLOR/2);
@@ -975,6 +976,12 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
    {
       poly_sq[i] *= geo->d_inv_space_vol;
       fprintf(datafilep, "%.12g ", poly_sq[i]);
+   }
+
+   polyakov_corr(geo, param, poly_vec, poly_corr);
+
+   for (i = 0; i<param->d_poly_corr; i++){
+    fprintf(datafilep, "%.12g %.12g ", creal(poly_corr[i]), cimag(poly_corr[i]));
    }
    
    // topological observables

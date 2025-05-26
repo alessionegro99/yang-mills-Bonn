@@ -81,8 +81,6 @@ void readinput(char *in_file, GParam *param)
     param->d_mon_meas=0; // if =1 monopole measures are performed
     param->d_higgs_beta=0.0;
 
-    param->d_poly_corr = 3;
-
     input=fopen(in_file, "r");  // open the input file
     if(input==NULL)
       {
@@ -159,6 +157,16 @@ void readinput(char *in_file, GParam *param)
                     exit(EXIT_FAILURE);
                     }
                   param->d_theta=temp_d;
+                  }
+            else if(strncmp(str, "maxpolycorr", 11)==0)
+                  {
+                  err=fscanf(input, "%d", &temp_i);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  param->d_poly_corr=temp_i;
                   }
            else if(strncmp(str, "higgs_beta", 10)==0)
                   {

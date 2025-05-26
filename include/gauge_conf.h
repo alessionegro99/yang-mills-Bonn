@@ -240,7 +240,8 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              GParam const * const param,
                                              FILE *datafilep,
                                              FILE *monofilep,
-                                             double complex * poly_vec);
+                                             double complex * poly_vec,
+                                             double complex * poly_corr);
 
 void higgs_interaction(Gauge_Conf const * const GC,
                        Geometry const * const geo,
