@@ -1086,7 +1086,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   r = cart_to_si(cartcoord, geo);
   si_to_sisp_and_t(&rsp, &t, geo, r);
 
-  max_wt = MIN(10, (int)geo->d_size[0] / 4);
+  max_wt = MIN(24, (int)geo->d_size[0] / 2);
   for (i = 1; i < STDIM; i++) {
     max_ws = MIN(10, (int)geo->d_size[i] / 4);
   }
