@@ -810,9 +810,9 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", plaqs, plaqt, polyre, polyim);
 
-  max_wt = MIN(10, (int)geo->d_size[0] / 4);
+  max_wt = (int)geo->d_size[0] / 2;
   for (i = 1; i < STDIM; i++) {
-    max_ws = MIN(10, (int)geo->d_size[i] / 4);
+    max_ws = (int)geo->d_size[i] / 2;
   }
 
   for (wt = 1; wt <= max_wt; wt++) {
