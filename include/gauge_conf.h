@@ -206,7 +206,18 @@ double Wilsont(Gauge_Conf const *const GC,
                Geometry const *const geo,
                int wt,
                int ws);
-
+double staircase_Wilsonp(Gauge_Conf const *const GC,
+                         Geometry const *const geo,
+                         int i,
+                         int j,
+                         int k,
+                         int wi,
+                         int wjk,
+                         long r);
+double staircase_Wilsont_xy(Gauge_Conf const *const GC, 
+                            Geometry const *const geo,
+                            int wt,
+                            int ws);
 void polyakov(Gauge_Conf const * const GC,
               Geometry const * const geo,
               double *repoly,
@@ -246,8 +257,9 @@ void perform_measures_localobs(Gauge_Conf const * const GC,
                                Geometry const * const geo,
                                GParam const * const param,
                                FILE *datafilep,
+                               FILE *datafileW,
+                               FILE *datafilesW,
                                FILE *monofilep);
-
 void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,
                                              GParam const * const param,
