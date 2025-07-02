@@ -266,7 +266,6 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              FILE *datafilep,
                                              FILE *monofilep,
                                              double complex * poly_vec);
-
 void higgs_interaction(Gauge_Conf const * const GC,
                        Geometry const * const geo,
                        double *he);
@@ -506,7 +505,7 @@ void gradflow_RKstep(Gauge_Conf *GC,
                      Gauge_Conf *helper2,
                      Geometry const * const geo,
                      double dt);
-void ape_smearing(Gauge_Conf *GC,
+void (Gauge_Conf *GC,
                   Geometry const * const geo,
                   double alpha,
                   int n);

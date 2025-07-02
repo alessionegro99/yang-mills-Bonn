@@ -886,6 +886,8 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt, polyre, polyim;
 
+  
+
   plaquette(GC, geo, &plaqs, &plaqt);
   polyakov(GC, geo, &polyre, &polyim);
 
