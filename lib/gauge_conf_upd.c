@@ -1425,7 +1425,7 @@ void overrelaxation_with_higgs(Gauge_Conf *GC,
   plus_equal(&stap1, &stap2);
 
   single_overrelaxation(&(GC->lattice[r][i]), &stap1);
-  }ape_smearing
+  }
 
 
 // compute the staple for the higgs field

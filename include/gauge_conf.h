@@ -505,7 +505,7 @@ void gradflow_RKstep(Gauge_Conf *GC,
                      Gauge_Conf *helper2,
                      Geometry const * const geo,
                      double dt);
-void (Gauge_Conf *GC,
+void ape_smearing(Gauge_Conf *GC,
                   Geometry const * const geo,
                   double alpha,
                   int n);
