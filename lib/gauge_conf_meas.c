@@ -900,15 +900,15 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 
   // planar temporal Wilson loops
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= max_ws; ws++) {
+  for (ws = 1; ws <= max_ws; ws++) {
+    for (wt = 1; wt <= max_wt; wt++) {
       fprintf(datafileW, "%.12g ", Wilsont(GC, geo, wt, ws));
     }
   }
 
   // staircase temporal Wilson loops
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= (int)max_ws / sqrt(2); ws++) {
+  for (ws = 1; ws <= max_ws/sqrt(2); ws++) {
+    for (wt = 1; wt <= max_wt; wt++) {
       fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
     }
   }
