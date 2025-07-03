@@ -425,11 +425,9 @@ double staircase_Wilsont_xy(Gauge_Conf const *const GC,
 #endif
   for (r = 0; r < geo->d_volume; r++) {
     ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
-    ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r);
   }
 
   ris *= geo->d_inv_vol;
-  ris /= 2;
 
   return ris;
 }
