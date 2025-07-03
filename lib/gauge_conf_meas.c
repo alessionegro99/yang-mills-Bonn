@@ -887,7 +887,6 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt, polyre, polyim;
 
-
   plaquette(GC, geo, &plaqs, &plaqt);
   polyakov(GC, geo, &polyre, &polyim);
 
@@ -907,8 +906,8 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 
   // staircase temporal Wilson loops
-  for (ws = 1; ws <= max_ws; ws++) {
-    for (wt = 1; wt <= (int)max_wt / sqrt(2); wt++) {
+  for (ws = 1; ws <= max_ws / sqrt(2); ws++) {
+    for (wt = 1; wt <= (int)max_wt; wt++) {
       fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
     }
   }
