@@ -64,7 +64,6 @@ void real_main(char *in_file) {
     update(&GC, &geo, &param);
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      ape_smearing(&GC, &geo, 0.7, 10);
       perform_measures_localobs(&GC, &geo, &param, datafilep, datafileW,
                                 datafilesW, monofilep);
     }

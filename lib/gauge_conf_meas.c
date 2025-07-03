@@ -354,7 +354,7 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
   return ris;
 }
 
-//
+// add description once fixed
 double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
                          int i, int j, int k, int wi, int wjk, long r) {
   int aux;
@@ -413,6 +413,7 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
   return retr(&matrix);
 }
 
+// add description once fixed
 double staircase_Wilsont_xy(Gauge_Conf const *const GC,
                             Geometry const *const geo, int wt, int ws) {
   long r;
@@ -886,7 +887,6 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt, polyre, polyim;
 
-  
 
   plaquette(GC, geo, &plaqs, &plaqt);
   polyakov(GC, geo, &polyre, &polyim);
@@ -900,15 +900,15 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 
   // planar temporal Wilson loops
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= max_ws; ws++) {
+  for (ws = 1; ws <= max_ws; ws++) {
+    for (wt = 1; wt <= (int)max_wt; wt++) {
       fprintf(datafileW, "%.12g ", Wilsont(GC, geo, wt, ws));
     }
   }
 
   // staircase temporal Wilson loops
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= (int)max_ws / sqrt(2); ws++) {
+  for (ws = 1; ws <= max_ws; ws++) {
+    for (wt = 1; wt <= (int)max_wt / sqrt(2); wt++) {
       fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
     }
   }
