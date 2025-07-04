@@ -428,6 +428,26 @@ void readinput(char *in_file, GParam *param)
                     }
                   strcpy(param->d_data_file, temp_str);
                   }
+            else if(strncmp(str, "Wloop_file", 10)==0)
+                  { 
+                  err=fscanf(input, "%s", temp_str);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  strcpy(param->d_Wloop_file, temp_str);
+                  }
+            else if(strncmp(str, "sWloop_file", 11)==0)
+                  { 
+                  err=fscanf(input, "%s", temp_str);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  strcpy(param->d_sWloop_file, temp_str);
+                  }
 	   // MONOPOLES file
 	   else if(strncmp(str, "mon_file", 8)==0)
                   { 
