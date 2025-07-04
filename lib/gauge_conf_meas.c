@@ -354,7 +354,8 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
   return ris;
 }
 
-// add description once fixed
+// multi-step staircase Wilson loop of size sqrt(2)*wjk at point r.
+// The i direction has length wi.
 double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
                          int i, int j, int k, int wi, int wjk, long r) {
   int aux;
@@ -413,7 +414,8 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
   return retr(&matrix);
 }
 
-// add description once fixed
+// averaged temporal multi-step staircase Wilson loop of size (wt,ws*sqrt(2)) in
+// the (1,2)=(x,y) plane
 double staircase_Wilsont_xy(Gauge_Conf const *const GC,
                             Geometry const *const geo, int wt, int ws) {
   long r;
