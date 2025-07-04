@@ -202,8 +202,21 @@ double Wilsonp(Gauge_Conf const *const GC,
                 int wi,
                 int wj,
                 long r);
+double Wilsonp_multihit(Gauge_Conf const *const GC,
+                Geometry const *const geo,
+                GParam const *const param,
+                int i,
+                int j,
+                int wi,
+                int wj,
+                long r);
 double Wilsont(Gauge_Conf const *const GC, 
                Geometry const *const geo,
+               int wt,
+               int ws);
+double Wilsont_multihit(Gauge_Conf const *const GC, 
+               Geometry const *const geo,
+               GParam const *const param,
                int wt,
                int ws);
 double staircase_Wilsonp(Gauge_Conf const *const GC,
