@@ -26,7 +26,7 @@ void real_main(char *in_file)
 
     char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
     int count;
-    FILE *datafilep, *monofilep;
+    FILE *datafilep, *Wloopfilep, *sWloopfilep;
     time_t time1, time2;
 
     // to disable nested parallelism
@@ -42,12 +42,6 @@ void real_main(char *in_file)
 
     // open data_file
     init_data_file(&datafilep, &param);
-
-    // open mon_file
-    if(param.d_mon_meas == 1)
-      {
-      init_mon_file(&monofilep, &param);
-      }
 
     // initialize geometry
     init_geometry(&geo, param.d_sizeg);
@@ -103,12 +97,10 @@ void real_main(char *in_file)
 
     // close data file
     fclose(datafilep);
-
-    // close mon file
-    if(param.d_mon_meas == 1)
-      {
-      fclose(monofilep);
-      }
+    // close Wloop file
+    fclose(Wloopfilep);
+    // close sWloop file
+    fclose(sWloopfilep);
 
     // save configuration
     if(param.d_saveconf_back_every!=0)
