@@ -315,8 +315,7 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
   *energy = ris * geo->d_inv_vol;
 }
 
-// Wilson loop (real trace of) of dimension wi and wj in directions i and j at
-// position r
+// rectangular Wilson loop of size (wi,wj) in direction (i,j) at point r
 double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
                int j, int wi, int wj, long r) {
   int aux;
@@ -372,88 +371,9 @@ double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
   return retr(&matrix);
 }
 
-// non planar Wilson loop (real trace of) of dimension wi, wj, wk in directions
-// i, j and k at position r
-double nonplanarWilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
-                        int i, int j, int k, int wi, int wj, int wk, long r) {
-  int aux;
-  GAUGE_GROUP matrix;
-
-#ifdef DEBUG
-  if (r >= geo->d_volume) {
-    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  if (j >= STDIM || i >= STDIM || k >= STDIM) {
-    fprintf(stderr,
-            "i or j or k too large: (i=%d || j=%d || k=%d) >= %d (%s, %d)\n", i,
-            j, k STDIM, __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-#endif
-
-  //      ^ i
-  //      |
-  //   r5 +--------+r4
-  //      |        |
-  //      |Wi      |
-  //      |        |
-  //      |        |
-  //      +--------+--> j
-  //     r    Wj   r1
-
-  //      ^ i
-  //      |
-  //   r4 +--------+r3
-  //      |        |
-  //      |        |Wi
-  //      |        |
-  //      |        |
-  //      +--------+--> k
-  //     r1   Wk   r2
-
-  one(&matrix);
-  // now we are in r
-  for (aux = 0; aux < wj; aux++) {
-    times_equal(&matrix, &(GC->lattice[r][j]));
-    r = nnp(geo, r, j);
-  }
-  // now we are in r1
-  for (aux = 0; aux < wk; aux++) {
-    times_equal(&matrix, &(GC->lattice[r][k]));
-    r = nnp(geo, r, k);
-  }
-  // now we are in r2
-  for (aux = 0; aux < wi; aux++) {
-    times_equal(&matrix, &(GC->lattice[r][i]));
-    r = nnp(geo, r, i);
-  }
-  // now we are in r3
-  for (aux = 0; aux < wk; aux++) {
-    r = nnm(geo, r, k);
-    times_equal_dag(&matrix, &(GC->lattice[r][k]));
-  }
-  // now we are in r4
-  for (aux = 0; aux < wj; aux++) {
-    r = nnm(geo, r, j);
-    times_equal_dag(&matrix, &(GC->lattice[r][j]));
-  }
-  // now we are in r5
-  for (aux = 0; aux < wi; aux++) {
-    r = nnm(geo, r, i);
-    times_equal_dag(&matrix, &(GC->lattice[r][i]));
-  }
-  // now we are in r5
-
-  return retr(&matrix);
-}
-
-// temporal Wilson loop of dimension wt and ws averaged over the lattice and
-// over (STDIM-1) spatial dimensions
+// averaged temporal rectangular Wilson loop of size (wt,ws)
 double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
                int ws) {
-  int j;
   long r;
   double ris;
 
@@ -462,6 +382,7 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
 #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
 #endif
   for (r = 0; r < geo->d_volume; r++) {
+    int j;
     for (j = 1; j < STDIM; j++) {
       ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
     }
@@ -473,8 +394,88 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
   return ris;
 }
 
-// temporal Wilson loop of dimension wt and ws at spatial position rsp, averaged
-// over the temporal periodic direction and (STDIM-1) spatial dimensions
+// multi-step staircase Wilson loop of size sqrt(2)*wjk at point r.
+// The i direction has length wi.
+double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
+                         int i, int j, int k, int wi, int wjk, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (j >= STDIM || i >= STDIM) {
+    fprintf(stderr, "i or j too large: (i=%d || j=%d) >= %d (%s, %d)\n", i, j,
+            STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  //
+  //       ^ j      _
+  //       |      _|
+  //       |    _|
+  //       |  _|
+  //       |_|
+  //       |
+  //       +----------> k
+  //       r
+  //
+
+  one(&matrix);
+  // diagonal steps in jk plane
+  for (aux = 0; aux < wjk; aux++) { // wrong????
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+    times_equal(&matrix, &(GC->lattice[r][k]));
+    r = nnp(geo, r, k);
+  }
+  // linear steps in direction i
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  // diagonal steps in jk plane backwards
+  for (aux = 0; aux < wjk; aux++) {
+    r = nnm(geo, r, k);
+    times_equal_dag(&matrix, &(GC->lattice[r][k]));
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  // linear steps backwards in direction i
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+
+  return retr(&matrix);
+}
+
+// averaged temporal multi-step staircase Wilson loop of size (wt,ws*sqrt(2)) in
+// the (1,2)=(x,y) plane
+double staircase_Wilsont_xy(Gauge_Conf const *const GC,
+                            Geometry const *const geo, int wt, int ws) {
+  long r;
+  double ris;
+
+  ris = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
+  }
+
+  ris *= geo->d_inv_vol;
+
+  return ris;
+}
+
+// temporally averaged temporal rectangular Wilson loop of size (wt,ws),
+// starting at spatial point rsp
 double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
                    int wt, int ws, long rsp) {
   long r;
@@ -498,12 +499,11 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
   return ris;
 }
 
-// temporal non planar Wilson loop of dimension wt and ws1, ws2 at spatial
-// position rsp, averaged over the temporal periodic direction and (STDIM-1)
-// spatial dimensions
-double nonplanarWilsont_obc(Gauge_Conf const *const GC,
-                            Geometry const *const geo, int wt, int s1, int s2,
-                            int ws1, int ws2, long rsp) {
+// temporally averaged temporal multi-step staircase Wilson loop of size
+// (wt,ws*sqrt(2)) in the (1,2)=(x,y) plane, at spatial point rsp
+double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
+                                Geometry const *const geo, int wt, int ws,
+                                long rsp) {
   long r;
   int t;
   double ris;
@@ -514,13 +514,62 @@ double nonplanarWilsont_obc(Gauge_Conf const *const GC,
 #endif
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
-    ris += nonplanarWilsonp(GC, geo, 0, s1, s2, wt, ws1, ws2, r);
+    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
   }
 
   ris /= geo->d_size[0];
 
   return ris;
 }
+
+// temporally averaged temporal rectangular Wilson loop of size (wt,ws),
+// starting at spatial point rsp
+// double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+//                    int wt, int ws, long rsp) {
+//   long r;
+//   int j, t;
+//   double ris;
+
+//   ris = 0;
+// #ifdef OPENMP_MODE
+// #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+// #endif
+//   for (t = 0; t < geo->d_size[0]; t++) {
+//     r = sisp_and_t_to_si(geo, rsp, t);
+//     for (j = 1; j < STDIM; j++) {
+//       ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
+//     }
+//   }
+
+//   ris /= geo->d_size[0];
+//   ris /= (STDIM - 1);
+
+//   return ris;
+// }
+
+// temporal non planar Wilson loop of dimension wt and ws1, ws2 at spatial
+// position rsp, averaged over the temporal periodic direction and (STDIM-1)
+// spatial dimensions
+// double nonplanarWilsont_obc(Gauge_Conf const *const GC,
+//                             Geometry const *const geo, int wt, int s1, int
+//                             s2, int ws1, int ws2, long rsp) {
+//   long r;
+//   int t;
+//   double ris;
+
+//   ris = 0;
+// #ifdef OPENMP_MODE
+// #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+// #endif
+//   for (t = 0; t < geo->d_size[0]; t++) {
+//     r = sisp_and_t_to_si(geo, rsp, t);
+//     ris += nonplanarWilsonp(GC, geo, 0, s1, s2, wt, ws1, ws2, r);
+//   }
+
+//   ris /= geo->d_size[0];
+
+//   return ris;
+// }
 
 // compute the mean Polyakov loop (the trace of)
 void polyakov(Gauge_Conf const *const GC, Geometry const *const geo,
@@ -1068,10 +1117,10 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
                                    GParam const *const param, FILE *datafilep) {
-  int i, ws, wt, max_wt, max_ws;
+  int i = 0;
   double plaqs, plaqt;
 
-  int cartcoord[STDIM], t;
+  int cartcoord[STDIM] t;
   long r, rsp;
 
   plaquette_obc(GC, geo, &plaqs, &plaqt);
@@ -1091,123 +1140,123 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     max_ws = MIN(10, (int)geo->d_size[i] / 4);
   }
 
-  for (wt = 1; wt <= max_wt; wt++) {
-    for (ws = 1; ws <= max_ws; ws++) {
-      // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
-      // uncomment to print Wilsont_obc
-    }
-  }
+  // for (wt = 1; wt <= max_wt; wt++) {
+  //   for (ws = 1; ws <= max_ws; ws++) {
+  //     // fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp)); //
+  //     // uncomment to print Wilsont_obc
+  //   }
+  // }
 
-  if (geo->d_size[1] == 3) {
-    // r = 1
-    for (wt = 1; wt <= max_wt; wt++) {
-      fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
-    }
+  // if (geo->d_size[1] == 3) {
+  //   // r = 1
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+  //   }
 
-    // r = sqrt(5)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
-      fprintf(datafilep, "%.12g ", aux / 4.0);
-    }
+  //   // r = sqrt(5)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 4.0);
+  //   }
 
-    // r = sqrt(8)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
-  }
+  //   // r = sqrt(8)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
+  // }
 
-  else if (geo->d_size[1] == 4) {
-    // r = sqrt(2)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 1, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 1, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
+  // else if (geo->d_size[1] == 4) {
+  //   // r = sqrt(2)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 1, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 1, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
 
-    // r = sqrt(10)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 3, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 1, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 3, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 1, rsp);
-      fprintf(datafilep, "%.12g ", aux / 4.0);
-    }
+  //   // r = sqrt(10)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 3, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 1, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 3, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 1, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 4.0);
+  //   }
 
-    // r = sqrt(18)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 3, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 3, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
-  }
+  //   // r = sqrt(18)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 3, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 3, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
+  // }
 
-  else if (geo->d_size[1] == 5) {
-    // r = sqrt(5)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
-      fprintf(datafilep, "%.12g ", aux / 4.0);
-    }
+  // else if (geo->d_size[1] == 5) {
+  //   // r = sqrt(5)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 4.0);
+  //   }
 
-    // r = sqrt(25)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 3, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 4, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 3, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 4, rsp);
-      fprintf(datafilep, "%.12g ", aux / 4.0);
-    }
+  //   // r = sqrt(25)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 3, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 3, 4, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 3, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 3, 4, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 4.0);
+  //   }
 
-    // r = sqrt(32)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 4, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 4, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
-  }
+  //   // r = sqrt(32)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 4, 4, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 4, 4, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
+  // }
 
-  else if (geo->d_size[1] == 7) {
-    // r = sqrt(8)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
+  // else if (geo->d_size[1] == 7) {
+  //   // r = sqrt(8)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
 
-    // r = sqrt(40)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 6, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 2, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 6, rsp);
-      fprintf(datafilep, "%.12g ", aux / 4.0);
-    }
+  //   // r = sqrt(40)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 6, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 2, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 6, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 4.0);
+  //   }
 
-    // r = sqrt(72)
-    for (wt = 1; wt <= max_wt; wt++) {
-      double aux;
-      aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 6, rsp);
-      aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 6, rsp);
-      fprintf(datafilep, "%.12g ", aux / 2.0);
-    }
-  }
+  //   // r = sqrt(72)
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     double aux;
+  //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 6, 6, rsp);
+  //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 6, 6, rsp);
+  //     fprintf(datafilep, "%.12g ", aux / 2.0);
+  //   }
+  // }
 
   fprintf(datafilep, "\n");
 }
