@@ -386,7 +386,7 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
 
   one(&matrix);
   // diagonal steps in jk plane
-  for (aux = 0; aux < 2 * wjk; aux++) {
+  for (aux = 0; aux < wjk; aux++) { // wrong????
     times_equal(&matrix, &(GC->lattice[r][j]));
     r = nnp(geo, r, j);
     times_equal(&matrix, &(GC->lattice[r][k]));
@@ -398,7 +398,7 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
     r = nnp(geo, r, i);
   }
   // diagonal steps in jk plane backwards
-  for (aux = 0; aux < 2 * wjk; aux++) {
+  for (aux = 0; aux < wjk; aux++) {
     r = nnm(geo, r, k);
     times_equal_dag(&matrix, &(GC->lattice[r][k]));
     r = nnm(geo, r, j);
