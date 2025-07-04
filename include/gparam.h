@@ -53,6 +53,8 @@ typedef struct GParam {
   char d_conf_file[STD_STRING_LENGTH];
   char d_higgs_conf_file[STD_STRING_LENGTH];
   char d_data_file[STD_STRING_LENGTH];
+  char d_Wloop_file[STD_STRING_LENGTH];
+  char d_sWloop_file[STD_STRING_LENGTH];
   char d_mon_file[STD_STRING_LENGTH];
   char d_log_file[STD_STRING_LENGTH];
   char d_ml_file[STD_STRING_LENGTH];
