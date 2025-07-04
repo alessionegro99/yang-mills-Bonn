@@ -581,7 +581,79 @@ void init_data_file(FILE **dataf, GParam const * const param)
     }
   fflush(*dataf);
   }
+ // initialize data file
+void init_Wloop_file(FILE **dataf, GParam const * const param)
+  {
+  int i;
 
+  if(param->d_start==2)
+    {
+    *dataf=fopen(param->d_Wloop_file, "r");
+    if(*dataf!=NULL) // file exists
+      {
+      fclose(*dataf);
+      *dataf=fopen(param->d_Wloop_file, "a");
+      }
+    else
+      {
+      *dataf=fopen(param->d_Wloop_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for(i=0; i<STDIM; i++)
+         {
+         fprintf(*dataf, "%d ", param->d_sizeg[i]);
+         }
+      fprintf(*dataf, "\n");
+      }
+    }
+  else
+    {
+    *dataf=fopen(param->d_Wloop_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for(i=0; i<STDIM; i++)
+       {
+       fprintf(*dataf, "%d ", param->d_sizeg[i]);
+       }
+    fprintf(*dataf, "\n");
+    }
+  fflush(*dataf);
+  }
+
+// initialize staircase Wilson loops file
+void init_sWloop_file(FILE **dataf, GParam const * const param)
+  {
+  int i;
+
+  if(param->d_start==2)
+    {
+    *dataf=fopen(param->d_sWloop_file, "r");
+    if(*dataf!=NULL) // file exists
+      {
+      fclose(*dataf);
+      *dataf=fopen(param->d_sWloop_file, "a");
+      }
+    else
+      {
+      *dataf=fopen(param->d_sWloop_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for(i=0; i<STDIM; i++)
+         {
+         fprintf(*dataf, "%d ", param->d_sizeg[i]);
+         }
+      fprintf(*dataf, "\n");
+      }
+    }
+  else
+    {
+    *dataf=fopen(param->d_sWloop_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for(i=0; i<STDIM; i++)
+       {
+       fprintf(*dataf, "%d ", param->d_sizeg[i]);
+       }
+    fprintf(*dataf, "\n");
+    }
+  fflush(*dataf);
+  }
 
 // initialize monopoles file
 void init_mon_file(FILE **monof, GParam const * const param)
