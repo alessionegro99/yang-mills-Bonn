@@ -1196,25 +1196,291 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
   }
 
+  // Ns=3
   else if (geo->d_size[1] == 3) {
     max_wt = geo->d_size[0];
+    // planar
     for (wt = 1; wt <= max_wt; wt++) {
+      // 1
       fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
     }
     for (wt = 1; wt <= max_wt; wt++) {
+      // 2
       fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 2, rsp));
     }
+    // non-planar
     for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt2
       fprintf(datafilesW, "%.12g ",
               staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
     }
     for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt5
       fprintf(datafilesW, "%.12g ",
               singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
     }
     for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt8
       fprintf(datafilesW, "%.12g ",
               staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+    }
+  }
+
+  // Ns=4
+  else if (geo->d_size[1] == 4) {
+    // planar
+    max_wt = geo->d_size[0];
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 1
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 2
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 3
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 3, rsp));
+    }
+    // non-planar
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt2
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt5
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt8
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt10
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt13
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt18
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+    }
+  }
+
+  // Ns=5
+  else if (geo->d_size[1] == 5) {
+    // planar
+    max_wt = geo->d_size[0];
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 1
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 2
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 3
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 4
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+    }
+    // non-planar
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt2
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt5
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt8
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt10
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt13
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt18
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt17
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt20
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt25
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt32
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp));
+    }
+  }
+
+  // Ns=7
+  else if (geo->d_size[1] == 7) {
+    // planar
+    max_wt = geo->d_size[0];
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 1
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 2
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 3
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 4
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 5
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // 6
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+    }
+    // non-planar
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt2
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt5
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt8
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt10
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt13
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt18
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt17
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt20
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt25
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt32
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt26
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt29
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt34
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt41
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 4, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt50
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 5, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt37
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 1, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt40
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 2, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt45
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 3, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt52
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 4, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt61
+      fprintf(datafilesW, "%.12g ",
+              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 5, rsp));
+    }
+    for (wt = 1; wt <= max_wt; wt++) {
+      // sqrt72
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc(GC, geo, wt, 6, rsp));
     }
   }
 
