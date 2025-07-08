@@ -220,7 +220,8 @@ double staircase_Wilsonp(Gauge_Conf const *const GC,
                          int k, 
                          int wi, 
                          int wjk, 
-                         long r);
+                         long r,
+                         int extra);
 double singlestep_Wilsonp(Gauge_Conf const *const GC,
                           Geometry const *const geo,
                           int i,
@@ -233,7 +234,8 @@ double singlestep_Wilsonp(Gauge_Conf const *const GC,
 double staircase_Wilsont_xy(Gauge_Conf const *const GC,
                             Geometry const *const geo, 
                             int wt, 
-                            int ws);
+                            int ws,
+                            int extra);
 double Wilsont_obc(Gauge_Conf const *const GC, 
                    Geometry const *const geo,
                    int wt, 
@@ -243,7 +245,8 @@ double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
                                 Geometry const *const geo,
                                 int wt, 
                                 int ws,
-                                long rsp);
+                                long rsp,
+                                int extra);
 double singlestep_Wilsont_xy_obc(Gauge_Conf const *const GC,
                                  Geometry const *const geo,
                                  int wt,

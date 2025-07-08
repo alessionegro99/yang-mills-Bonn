@@ -397,7 +397,8 @@ double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
 // multi-step staircase Wilson loop of size sqrt(2)*wjk at point r.
 // The i direction has length wi.
 double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
-                         int i, int j, int k, int wi, int wjk, long r) {
+                         int i, int j, int k, int wi, int wjk, long r,
+                         int extra) {
   int aux;
   GAUGE_GROUP matrix;
 
@@ -415,8 +416,8 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
 #endif
 
   //
-  //       ^ j      _
-  //       |      _|
+  //       ^ j
+  //       |     |
   //       |    _|
   //       |  _|
   //       |_|
@@ -433,10 +434,24 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
     times_equal(&matrix, &(GC->lattice[r][k]));
     r = nnp(geo, r, k);
   }
+  // extra steps in dir j
+  if (extra > 0) {
+    for (aux = 0; aux < extra; aux++) {
+      times_equal(&matrix, &(GC->lattice[r][j]));
+      r = nnp(geo, r, j);
+    }
+  }
   // linear steps in direction i
   for (aux = 0; aux < wi; aux++) {
     times_equal(&matrix, &(GC->lattice[r][i]));
     r = nnp(geo, r, i);
+  }
+  // extra steps in dir j backwards
+  if (extra > 0) {
+    for (aux = 0; aux < extra; aux++) {
+      r = nnm(geo, r, j);
+      times_equal_dag(&matrix, &(GC->lattice[r][j]));
+    }
   }
   // diagonal steps in jk plane backwards
   for (aux = 0; aux < wjk; aux++) {
@@ -523,7 +538,8 @@ double singlestep_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
 // averaged temporal multi-step staircase Wilson loop of size (wt,ws*sqrt(2)) in
 // the (1,2)=(x,y) plane
 double staircase_Wilsont_xy(Gauge_Conf const *const GC,
-                            Geometry const *const geo, int wt, int ws) {
+                            Geometry const *const geo, int wt, int ws,
+                            int extra) {
   long r;
   double ris;
 
@@ -532,7 +548,7 @@ double staircase_Wilsont_xy(Gauge_Conf const *const GC,
 #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
 #endif
   for (r = 0; r < geo->d_volume; r++) {
-    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
+    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r, extra);
   }
 
   ris *= geo->d_inv_vol;
@@ -541,7 +557,7 @@ double staircase_Wilsont_xy(Gauge_Conf const *const GC,
 }
 
 // temporally averaged temporal rectangular Wilson loop of size (wt,ws),
-// starting at spatial point rsp
+// starting at spatial point rsp and measuring in dir y
 double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
                    int wt, int ws, long rsp) {
   long r;
@@ -554,7 +570,8 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
 #endif
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
-    ris += Wilsonp(GC, geo, 0, 1, wt, ws, r);
+    // ris += Wilsonp(GC, geo, 0, 1, wt, ws, r);
+    ris += Wilsonp(GC, geo, 0, 2, wt, ws, r);
   }
 
   ris /= geo->d_size[0];
@@ -566,7 +583,7 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
 // (wt,ws*sqrt(2)) in the (1,2)=(x,y) plane, at spatial point rsp
 double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
                                 Geometry const *const geo, int wt, int ws,
-                                long rsp) {
+                                long rsp, int extra) {
   long r;
   int t;
   double ris;
@@ -577,7 +594,8 @@ double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
 #endif
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
-    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
+    ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r, extra);
+    // ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
   }
 
   ris /= geo->d_size[0];
@@ -601,6 +619,7 @@ double singlestep_Wilsont_xy_obc(Gauge_Conf const *const GC,
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
     ris += singlestep_Wilsonp(GC, geo, 0, 1, 2, wt, wx, wy, r);
+    // ris += singlestep_Wilsonp(GC, geo, 0, 2, 1, wt, wx, wy, r);
   }
 
   ris /= geo->d_size[0];
@@ -1191,7 +1210,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     for (ws = 1; ws <= max_ws; ws++) {
       for (wt = 1; wt <= max_wt; wt++) {
         fprintf(datafilesW, "%.12g ",
-                staircase_Wilsont_xy_obc(GC, geo, wt, ws, rsp));
+                staircase_Wilsont_xy_obc(GC, geo, wt, ws, rsp, 0));
       }
     }
   }
@@ -1212,17 +1231,17 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt2
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt5
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt8
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 0));
     }
   }
 
@@ -1246,32 +1265,32 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt2
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt5
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt8
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt10
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt13
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt18
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 0));
     }
   }
 
@@ -1299,52 +1318,52 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt2
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt5
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt8
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt10
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt13
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt18
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt17
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 3));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt20
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt25
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt32
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp, 0));
     }
   }
 
@@ -1370,117 +1389,117 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // 5
-      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 5, rsp));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // 6
-      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 4, rsp));
+      fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, 6, rsp));
     }
     // non-planar
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt2
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt5
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 2, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt8
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt10
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt13
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 3, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt18
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt17
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 3));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt20
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt25
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 4, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt32
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt26
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 4));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt29
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 3));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt34
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt41
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 5, 4, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt50
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 5, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 5, rsp, 0));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt37
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 1, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 1, rsp, 5));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt40
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 2, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 2, rsp, 4));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt45
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 3, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 3, rsp, 3));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt52
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 4, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 4, rsp, 2));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt61
       fprintf(datafilesW, "%.12g ",
-              singlestep_Wilsont_xy_obc(GC, geo, wt, 6, 5, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 5, rsp, 1));
     }
     for (wt = 1; wt <= max_wt; wt++) {
       // sqrt72
       fprintf(datafilesW, "%.12g ",
-              staircase_Wilsont_xy_obc(GC, geo, wt, 6, rsp));
+              staircase_Wilsont_xy_obc(GC, geo, wt, 6, rsp, 0));
     }
   }
 
