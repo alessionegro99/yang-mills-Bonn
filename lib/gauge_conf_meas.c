@@ -387,7 +387,7 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
 
   one(&matrix);
   // diagonal steps in jk plane
-  for (aux = 0; aux < wjk; aux++) { // wrong????
+  for (aux = 0; aux < wjk; aux++) {
     times_equal(&matrix, &(GC->lattice[r][j]));
     r = nnp(geo, r, j);
     times_equal(&matrix, &(GC->lattice[r][k]));
@@ -415,7 +415,7 @@ double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
 }
 
 // averaged temporal multi-step staircase Wilson loop of size (wt,ws*sqrt(2)) in
-// the (1,2)=(x,y) plane
+// the xy
 double staircase_Wilsont_xy(Gauge_Conf const *const GC,
                             Geometry const *const geo, int wt, int ws) {
   long r;
@@ -426,7 +426,7 @@ double staircase_Wilsont_xy(Gauge_Conf const *const GC,
 #pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
 #endif
   for (r = 0; r < geo->d_volume; r++) {
-    ris += staircase_Wilsonp(GC, geo, 0, 1, 2, wt, ws, r);
+    ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r);
   }
 
   ris *= geo->d_inv_vol;
@@ -900,14 +900,14 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
   // planar temporal Wilson loops
   for (ws = 1; ws <= max_ws; ws++) {
-    for (wt = 1; wt <= (int)max_wt; wt++) {
+    for (wt = 1; wt <= max_wt; wt++) {
       fprintf(datafileW, "%.12g ", Wilsont(GC, geo, wt, ws));
     }
   }
 
   // staircase temporal Wilson loops
   for (ws = 1; ws <= max_ws; ws++) {
-    for (wt = 1; wt <= (int)max_wt; wt++) {
+    for (wt = 1; wt <= max_wt; wt++) {
       fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
     }
   }
