@@ -882,8 +882,7 @@ void topcharge_cooling(Gauge_Conf const *const GC, Geometry const *const geo,
 void perform_measures_localobs(Gauge_Conf const *const GC,
                                Geometry const *const geo,
                                GParam const *const param, FILE *datafilep,
-                               FILE *datafileW, FILE *datafilesW,
-                               FILE *monofilep) {
+                               FILE *datafileW, FILE *monofilep) {
   int i, ws, wt, max_wt, max_ws;
   double plaqs, plaqt, polyre, polyim;
 
@@ -939,11 +938,9 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 #else
   fprintf(datafilep, "\n");
   fprintf(datafileW, "\n");
-  fprintf(datafilesW, "\n");
 #endif
   fflush(datafilep);
   fflush(datafileW);
-  fflush(datafilesW);
 
   // monopole observables
   if (param->d_mon_meas == 1) {

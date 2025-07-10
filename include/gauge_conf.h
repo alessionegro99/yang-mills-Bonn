@@ -258,7 +258,6 @@ void perform_measures_localobs(Gauge_Conf const * const GC,
                                GParam const * const param,
                                FILE *datafilep,
                                FILE *datafileW,
-                               FILE *datafilesW,
                                FILE *monofilep);
 void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,

@@ -25,7 +25,7 @@ void real_main(char *in_file) {
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
   int count;
-  FILE *datafilep, *datafileW, *datafilesW, *monofilep;
+  FILE *datafilep, *datafileW, *monofilep;
   time_t time1, time2;
 
 // to disable nested parallelism
@@ -43,8 +43,7 @@ void real_main(char *in_file) {
   init_data_file(&datafilep, &param);
   // open Wloop_files
   init_Wloop_file(&datafileW, &param);
-  // open sWloop_files
-  init_sWloop_file(&datafilesW, &param);
+  // open
 
   // open mon_file
   if (param.d_mon_meas == 1) {
@@ -65,7 +64,7 @@ void real_main(char *in_file) {
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
       perform_measures_localobs(&GC, &geo, &param, datafilep, datafileW,
-                                datafilesW, monofilep);
+                                monofilep);
     }
 
     // save configuration for backup
@@ -95,7 +94,6 @@ void real_main(char *in_file) {
   // close data file
   fclose(datafilep);
   fclose(datafileW);
-  fclose(datafilesW);
 
   // close mon file
   if (param.d_mon_meas == 1) {
