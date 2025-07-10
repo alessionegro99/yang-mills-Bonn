@@ -893,9 +893,9 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   fprintf(datafilep, "%.12g %.12g %.12g %.12g ", plaqs, plaqt, polyre, polyim);
 
   // getting max_wt and max_ws
-  max_wt = (int)geo->d_size[0] * 2 / 3;
+  max_wt = (int)geo->d_size[0] * 2;
   for (i = 1; i < STDIM; i++) {
-    max_ws = (int)geo->d_size[i] * 2 / 3;
+    max_ws = (int)geo->d_size[i] * 2;
   }
 
   // planar temporal Wilson loops
@@ -905,12 +905,12 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
     }
   }
 
-  // staircase temporal Wilson loops
-  for (ws = 1; ws <= max_ws; ws++) {
-    for (wt = 1; wt <= max_wt; wt++) {
-      fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
-    }
-  }
+  // // staircase temporal Wilson loops
+  // for (ws = 1; ws <= max_ws; ws++) {
+  //   for (wt = 1; wt <= max_wt; wt++) {
+  //     fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
+  //   }
+  // }
 
 // topological observables
 #if ((STDIM == 4 && NCOLOR > 1) || (STDIM == 2 && NCOLOR == 1))
