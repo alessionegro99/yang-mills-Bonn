@@ -16,6 +16,7 @@ typedef struct GParam {
   double d_theta;
   double d_higgs_beta;
   int d_poly_corr;
+  int d_dis_max;
 
   // simulation details
   int d_sample;

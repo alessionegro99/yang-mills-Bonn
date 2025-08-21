@@ -237,6 +237,16 @@ void readinput(char *in_file, GParam *param)
                     param->d_r0[i]=temp_i;
                     }
                  }
+                 else if(strncmp(str, "dis_max", 7)==0)
+                  { 
+                  err=fscanf(input, "%d", &temp_i);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  param->d_dis_max=temp_i;
+                  }
 
            else if(strncmp(str, "start", 5)==0)
                   { 
@@ -819,6 +829,8 @@ fprintf(fp, "overrelax: %d\n", param->d_overrelax);
 fprintf(fp, "measevery: %d\n", param->d_measevery);
 fprintf(fp, "monopoles: %d\n", param->d_mon_meas);
 fprintf(fp, "r0: (%d", param->d_r0[0]);
+fprintf(fp, "dis_max: (%d", param->d_dis_max);
+
 for(i=2; i<STDIM; i++)
    {
    fprintf(fp, ", %d", param->d_r0[i-1]);

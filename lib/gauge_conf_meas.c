@@ -284,6 +284,127 @@ void plaquette_obc(Gauge_Conf const *const GC, Geometry const *const geo,
   *plaqt = pt;
 }
 
+// computes the number of temporal faces on a sublattice of dimension (Ns -
+// dis)^STDIM * Nt
+int compute_nfaces_t_sublat(Geometry const *const geo, int dis) {
+  int j, k;
+  int aux;
+  int nfaces_t = 0;
+
+  for (j = 1; j < STDIM; j++) {
+    aux = (geo->d_size[0]) * (geo->d_size[j] - dis - 1);
+    for (k = 1; k < STDIM; k++) {
+      if (k != j)
+        aux *= geo->d_size[k] - dis;
+    }
+    nfaces_t += aux;
+  }
+
+  return nfaces_t;
+}
+
+// computes the number of spatial faces on a sublattice of dimension (Ns - dis)
+int compute_nfaces_sp_sublat(Geometry const *const geo, int dis) {
+  int i, j, k;
+  int aux;
+  int nfaces_sp = 0;
+
+  for (i = 1; i < STDIM; i++) {
+    for (j = i + 1; j < STDIM; j++) {
+      aux = (geo->d_size[i] - dis - 1) * (geo->d_size[j] - dis - 1);
+
+      for (k = 1; k < STDIM; k++) {
+        if (k != i && k != j) {
+          aux *= (geo->d_size[k] - dis);
+        }
+      }
+      nfaces_sp += aux;
+    }
+  }
+
+  return nfaces_sp;
+}
+
+void plaquette_obc_fve(Gauge_Conf const *const GC, Geometry const *const geo,
+                       double *plaqs, double *plaqt, int dis) {
+  long r;
+  int nfaces_t, nfaces_sp;
+  int measure_sp, measure_t, measure_t_dir[STDIM - 1];
+  int cartcoord[STDIM];
+
+  double ps, pt;
+
+  ps = 0.0;
+  pt = 0.0;
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : pt)    \
+    reduction(+ : ps)
+#endif
+  for (r = 0; r < (geo->d_volume); r++) {
+    int k;
+
+    si_to_cart(cartcoord, r, geo);
+
+    measure_sp = 1;
+    measure_t = 1;
+    for (k = 0; k < STDIM - 1; k++) {
+      measure_t_dir[k] = 1;
+    }
+
+    for (k = 1; k < STDIM; k++) {
+      if (cartcoord[k] < dis || cartcoord[k] > (geo->d_size[k] - dis - 1)) {
+        measure_t = 0;
+        measure_sp = 0;
+      } else if (cartcoord[k] == (geo->d_size[k] - dis - 1)) {
+        measure_t_dir[k - 1] = 0;
+        measure_sp = 0;
+      }
+    }
+
+    // // debug
+    // for(k=0; k<STDIM; k++){
+    //   fprintf(stdout, "%d ", cartcoord[k]);
+    // }
+    // fprintf(stdout, "%d ", measure_t);
+    // for(k=0; k<STDIM-1; k++){
+    //   fprintf(stdout, "%d ", measure_t_dir[k]);
+    // }
+    // fprintf(stdout, "\n");
+
+    int i, j;
+    i = 0;
+
+    for (j = 1; j < STDIM; j++) {
+      pt += plaquettep(GC, geo, r, i, j) * (double)measure_t *
+            (double)measure_t_dir[j - 1];
+    }
+
+    for (i = 1; i < STDIM; i++) {
+      for (j = i + 1; j < STDIM; j++) {
+        ps += plaquettep(GC, geo, r, i, j) * (double)measure_sp;
+      }
+    }
+  }
+
+  // fprintf(stdout, "\n");
+
+  nfaces_t = compute_nfaces_t_sublat(geo, 2 * dis);
+  nfaces_sp = compute_nfaces_sp_sublat(geo, 2 * dis);
+
+  if (STDIM > 2) {
+    ps /= ((double)geo->d_size[0]);
+    ps /= ((double)nfaces_sp);
+  } else {
+    ps = 0.0;
+  }
+
+  pt /= ((double)nfaces_t);
+
+  *plaqs = ps;
+  *plaqt = pt;
+}
+
 // compute the clover discretization of
 // sum_{\mu\nu}  Tr(F_{\mu\nu}F_{\mu\nu})/2
 void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
@@ -1172,47 +1293,17 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
-                                   GParam const *const param, FILE *datafilep,
-                                   FILE *datafileW, FILE *datafilesW) {
-  int i, ws, wt, max_wt, max_ws;
+                                   GParam const *const param, FILE *datafilep) {
+  int dis;
   double plaqs, plaqt;
 
-  int cartcoord[STDIM], t;
-  long r, rsp;
-
-  plaquette_obc(GC, geo, &plaqs, &plaqt);
-
-  fprintf(datafilep, "%.12g %.12g", plaqs, plaqt);
-
-  cartcoord[0] = 0;
-  for (i = 1; i < STDIM; i++) {
-    cartcoord[i] = param->d_r0[i - 1];
+  for (dis = 0; dis <= param->d_dis_max; dis++) {
+    plaquette_obc_fve(GC, geo, &plaqs, &plaqt, dis);
+    fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
   }
-
-  r = cart_to_si(cartcoord, geo);
-  si_to_sisp_and_t(&rsp, &t, geo, r);
-
-  if (geo->d_size[1] >= 8) {
-    // getting max_wt and max_ws
-    max_wt = (int)geo->d_size[0] * 2 / 3;
-    for (i = 1; i < STDIM; i++) {
-      max_ws = (int)geo->d_size[i] * 2 / 3;
-    }
-
-    // planar temporal Wilson loops
-    for (ws = 1; ws <= max_ws; ws++) {
-      for (wt = 1; wt <= max_wt; wt++) {
-        fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, wt, ws, rsp));
-      }
-    }
-
-  
-
   fprintf(datafilep, "\n");
-  fprintf(datafileW, "\n");
 
   fflush(datafilep);
-  fflush(datafileW);
 }
 
 //   // if (geo->d_size[1] == 3) {
@@ -1725,8 +1816,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
 #endif
     for (r = 0; r < geo->d_volume / 2; r++) {
       GAUGE_GROUP G_mag, help,
-          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in the
-                              // computation of X(n)
+          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in
+                              // the computation of X(n)
 
       // initialize X_links[2*STDIM] with the 2*STDIM links surrounding the
       // point r links 0 to (STDIM-1) are forward, while links STDIM to
@@ -1752,8 +1843,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
 #endif
     for (r = geo->d_volume / 2; r < geo->d_volume; r++) {
       GAUGE_GROUP G_mag, help,
-          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in the
-                              // computation of X(n)
+          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in
+                              // the computation of X(n)
 
       // initialize X_links[2*STDIM] with the 2*STDIM links surrounding the
       // point r links 0 to (STDIM-1) are forward, while links STDIM to
@@ -1782,8 +1873,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
     reduction(+ : nondiagaux)
 #endif
     for (r = 0; r < geo->d_volume; r++) {
-      GAUGE_GROUP X_links[2 * STDIM]; // X_links contains the 2*STDIM links used
-                                      // in the computation of X(n)
+      GAUGE_GROUP X_links[2 * STDIM]; // X_links contains the 2*STDIM links
+                                      // used in the computation of X(n)
       double counter;
 
       for (dir = 0; dir < STDIM; dir++) {
@@ -2016,8 +2107,8 @@ void monopoles_obs(Gauge_Conf *GC, Geometry const *const geo,
     // start following monopole charge in forward direction. Maximum lattice
     // charge is +2 so we try twice
     for (mono_charge = 0; mono_charge < 2; mono_charge++) {
-      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are associated
-      // to uflag[r][dir]
+      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are
+      // associated to uflag[r][dir]
       if (n_mu > GC->uflag[r_tback][0]) {
         GC->uflag[r_tback][0] += 1;
 
@@ -2052,8 +2143,8 @@ void monopoles_obs(Gauge_Conf *GC, Geometry const *const geo,
     // start following monopole charge in backward direction. Maximum lattice
     // charge is +2 so we try twice
     for (mono_charge = 0; mono_charge < 2; mono_charge++) {
-      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are associated
-      // to uflag[r][dir]
+      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are
+      // associated to uflag[r][dir]
       if (n_mu < GC->uflag[r_tbackback][0]) {
         GC->uflag[r_tbackback][0] -= 1;
 

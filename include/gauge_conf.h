@@ -194,6 +194,19 @@ void plaquette(Gauge_Conf const * const GC,
                Geometry const * const geo,
                double *plaqs,
                double *plaqt);
+void plaquette_obc(Gauge_Conf const *const GC,
+                   Geometry const *const geo,
+                   double *plaqs,
+                   double *plaqt);
+int compute_nfaces_t_sublat(Geometry const *const geo,
+                             int dis);
+int compute_nfaces_sp_sublat(Geometry const *const geo,
+                             int dis);
+void plaquette_obc_fve(Gauge_Conf const *const GC,
+                       Geometry const *const geo,
+                       double *plaqs,
+                       double *plaqt,
+                       int dis);
 void clover_disc_energy(Gauge_Conf const * const GC,
                         Geometry const * const geo,
                         double *energy);
@@ -297,9 +310,9 @@ void perform_measures_localobs(Gauge_Conf const * const GC,
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
                                    GParam const *const param,
-                                   FILE *datafilep, 
-                                   FILE *datafileW, 
-                                   FILE *datafilesW);
+                                   FILE *datafilep);
+                                  //  FILE *datafileW, 
+                                  //  FILE *datafilesW);
 
 void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,
