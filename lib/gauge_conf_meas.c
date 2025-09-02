@@ -700,6 +700,36 @@ double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
   return ris;
 }
 
+// averaged temporal rectangular Wilson loop of size (wt,ws)a
+double Wilsont_obc_avg(Gauge_Conf const *const GC, Geometry const *const geo,
+                       int wt, int ws) {
+  int count;
+  long r;
+  double aux, ris;
+
+  ris = 0;
+  count = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    int j;
+    for (j = 1; j < STDIM; j++) {
+      aux = Wilsonp(GC, geo, 0, j, wt, ws, r);
+      if (fabs(aux) != 0.0) {
+        ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
+        count++;
+      }
+    }
+  }
+
+  fprintf(stdout, "%d %d %d\n", wt, ws, count);
+
+  ris /= count;
+
+  return ris;
+}
+
 // temporally averaged temporal multi-step staircase Wilson loop of size
 // (wt,ws*sqrt(2)) in the (1,2)=(x,y) plane, at spatial point rsp
 double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
@@ -1293,8 +1323,9 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
-                                   GParam const *const param, FILE *datafilep) {
-  int dis;
+                                   GParam const *const param, FILE *datafilep,
+                                   FILE *datafileW) {
+  int dis, wt, ws;
   double plaqs, plaqt;
 
   for (dis = 0; dis <= param->d_dis_max; dis++) {
@@ -1303,33 +1334,16 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   }
   fprintf(datafilep, "\n");
 
+  for (wt = 1; wt <= (int)geo->d_size[0]; wt++) {
+    for (ws = 1; ws <= (int)geo->d_size[1]; ws++) {
+      fprintf(datafileW, "%.12g ", Wilsont_obc_avg(GC, geo, wt, ws));
+    }
+  }
+  fprintf(datafileW, "\n");
+
   fflush(datafilep);
+  fflush(datafileW);
 }
-
-//   // if (geo->d_size[1] == 3) {
-//   //   // r = 1
-//   //   for (wt = 1; wt <= max_wt; wt++) {
-//   //     fprintf(datafilep, "%.12g ", Wilsont_obc(GC, geo, wt, 1, rsp));
-//   //   }
-
-//   //   // r = sqrt(5)
-//   //   for (wt = 1; wt <= max_wt; wt++) {
-//   //     double aux;
-//   //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 1, 2, rsp);
-//   //     aux += nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 1, rsp);
-//   //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 1, 2, rsp);
-//   //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 1, rsp);
-//   //     fprintf(datafilep, "%.12g ", aux / 4.0);
-//   //   }
-
-//   //   // r = sqrt(8)
-//   //   for (wt = 1; wt <= max_wt; wt++) {
-//   //     double aux;
-//   //     aux = nonplanarWilsont_obc(GC, geo, wt, 1, 2, 2, 2, rsp);
-//   //     aux += nonplanarWilsont_obc(GC, geo, wt, 2, 1, 2, 2, rsp);
-//   //     fprintf(datafilep, "%.12g ", aux / 2.0);
-//   //   }
-//   // }
 
 // perform local observables in the case of trace deformation, it computes all
 // the order parameters

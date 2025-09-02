@@ -226,6 +226,10 @@ double Wilsont_obc(Gauge_Conf const *const GC,
                 int wt,
                 int ws,
                 long rsp);
+double Wilsont_obc_avg(Gauge_Conf const *const GC, 
+                Geometry const *const geo,
+                int wt,
+                int ws);
 double staircase_Wilsonp(Gauge_Conf const *const GC,
                          Geometry const *const geo,
                          int i,
@@ -310,10 +314,10 @@ void perform_measures_localobs(Gauge_Conf const * const GC,
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
                                    GParam const *const param,
-                                   FILE *datafilep);
-                                  //  FILE *datafileW, 
+                                   FILE *datafilep,
+                                   FILE *datafileW);
                                   //  FILE *datafilesW);
-
+                                  
 void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              Geometry const * const geo,
                                              GParam const * const param,
