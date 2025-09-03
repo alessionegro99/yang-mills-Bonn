@@ -271,7 +271,6 @@ void plaquette(Gauge_Conf const * const GC,
    *plaqt=pt;
    }
 
-
 // compute the clover discretization of
 // sum_{\mu\nu}  Tr(F_{\mu\nu}F_{\mu\nu})/2
 void clover_disc_energy(Gauge_Conf const * const GC,
@@ -633,6 +632,63 @@ void polyakov_corr(Geometry const * const geo,
       }
 }
 
+// compute the Polyakov Polyakov correlator at a fixed distance
+void poly_poly_corr(Geometry const * const geo,
+                    GParam const * const param,
+                    double complex const * const polyvec, 
+                    double *polyplaqpolyre,
+                    double *polyplaqpolyim)
+{
+long rsp;
+double rep, imp;
+
+imp=0.0;
+rep=0.0;
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) reduction(+ : imp)
+#endif
+for(rsp=0; rsp<geo->d_space_vol; rsp++)
+   {
+   int j, t_tmp;
+   long r, rsp_tmp;
+   double complex p1, p2;
+
+   for(j=1; j<STDIM; j++)
+      {	
+      int i;
+
+      r=sisp_and_t_to_si(geo, rsp, 0);
+
+      for(i=0; i<param->d_dist_flux; i++)
+         {
+         r=nnp(geo, r, j); 
+         }
+   
+      si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
+      
+      p1=polyvec[rsp_tmp];
+      p2=polyvec[rsp];	 
+
+      rep+=creal(conj(p2)*p1);
+      imp+=cimag(conj(p2)*p1);
+      }
+   }
+
+   *polyplaqpolyre = rep*geo->d_inv_space_vol/(STDIM-1);
+   *polyplaqpolyim = imp*geo->d_inv_space_vol/(STDIM-1);
+}
+
+// compute the Polyakov plaquette  Polyakov correlator with 
+// Polyakov loops at a distance d=2n+1, n positive integer and the plaquette in the middle.
+// The plaquette corresponds to the chromo-electric field in the direction of the separation between the two Polyakov loops.
+// void poly_plaq_poly_corr(Geometry const * const geo,
+//                         GParam const * const param,
+//                         double complex const * const polyvec, 
+//                         double complex *poly_Utx_poly_corr)
+// {
+// }
+
 // compute the local topological charge at point r
 // see readme for more details
 double loc_topcharge(Gauge_Conf const * const GC,
@@ -696,7 +752,6 @@ double loc_topcharge(Gauge_Conf const * const GC,
 
    return ris;
    }
-
 
 // compute the topological charge
 // see readme for more details
@@ -786,7 +841,6 @@ void topcharge_cooling(Gauge_Conf const * const GC,
         }
      } 
    }
-
 
 void perform_measures_localobs(Gauge_Conf const * const GC,
                                Geometry const * const geo,
@@ -1064,6 +1118,45 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
      #endif
      }
    }
+
+// perform local observables in the case of trace deformation, it computes all the order parameters
+void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf const * const GC,
+                                             Geometry const * const geo,
+                                             GParam const * const param,
+                                             FILE *datafilep,
+                                             FILE *datafilePP,
+                                             double complex * poly_vec)
+   {
+   int i;
+   double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
+   double polypolyre, polypolyim;
+
+   //measurement of <U>
+   plaquette(GC, geo, &plaqs, &plaqt);
+   polyakov_for_tracedef(GC, geo, polyre, polyim);
+
+   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
+
+   for(i=0; i<(int)floor(NCOLOR/2); i++)
+      {
+      fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
+      }
+   
+   fprintf(datafilep, "\n");
+   fflush(datafilep);
+
+   // measurement <P\dag P>
+   polyvec(GC, geo, poly_vec);
+   poly_poly_corr(geo, param, poly_vec, &polypolyre, &polypolyim);
+
+   fprintf(datafilePP, "%.12g %.12g ", polypolyre, polypolyim);
+   fprintf(datafilePP, "\n");
+   
+   fflush(datafilePP);
+
+   // measurement of <P\dag U P>
+   }
+
 
 
 // compute the average value of \sum_{flavours} Re(H_x U_{x,mu} H_{x+mu})

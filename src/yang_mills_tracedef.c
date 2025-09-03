@@ -166,6 +166,7 @@ void print_template_input(void)
     fprintf(fp, "htracedef  1.1\n");
     fprintf(fp, "theta 1.5\n");
     fprintf(fp, "maxpolycorr 3\n");
+    fprintf(fp, "dist_flux 9\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");

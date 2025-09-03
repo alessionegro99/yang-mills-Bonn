@@ -212,7 +212,12 @@ void polyakov_corr_FT(Geometry const * const geo,
 void polyakov_corr(Geometry const * const geo,
               GParam const * const param,
               double complex const * const polyvec, 
-              double complex *polycorr);            
+              double complex *polycorr);      
+void poly_poly_corr(Geometry const * const geo,
+                    GParam const * const param,
+                    double complex const * const polyvec, 
+                    double *polyplaqpolyre,
+                    double *polyplaqpolyim);
 void polyakov_adj(Gauge_Conf const * const GC,
                   Geometry const * const geo,
                   double *repoly,
