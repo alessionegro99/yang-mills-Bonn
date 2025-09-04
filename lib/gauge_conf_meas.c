@@ -636,8 +636,8 @@ void polyakov_corr(Geometry const * const geo,
 void poly_poly_corr(Geometry const * const geo,
                     GParam const * const param,
                     double complex const * const polyvec, 
-                    double *polyplaqpolyre,
-                    double *polyplaqpolyim)
+                    double *polypolyre,
+                    double *polypolyim)
 {
 long rsp;
 double rep, imp;
@@ -675,19 +675,81 @@ for(rsp=0; rsp<geo->d_space_vol; rsp++)
       }
    }
 
-   *polyplaqpolyre = rep*geo->d_inv_space_vol/(STDIM-1);
-   *polyplaqpolyim = imp*geo->d_inv_space_vol/(STDIM-1);
+   *polypolyre = rep*geo->d_inv_space_vol/(STDIM-1);
+   *polypolyim = imp*geo->d_inv_space_vol/(STDIM-1);
 }
+
+// compute a the temporal average of the plaquettes at a certain point rsp
+void 
 
 // compute the Polyakov plaquette  Polyakov correlator with 
 // Polyakov loops at a distance d=2n+1, n positive integer and the plaquette in the middle.
 // The plaquette corresponds to the chromo-electric field in the direction of the separation between the two Polyakov loops.
-// void poly_plaq_poly_corr(Geometry const * const geo,
-//                         GParam const * const param,
-//                         double complex const * const polyvec, 
-//                         double complex *poly_Utx_poly_corr)
-// {
-// }
+void poly_plaq_poly_corr(Geometry const * const geo,
+                        GParam const * const param,
+                        Gauge_Conf const * const GC,
+                        double complex const * const polyvec, 
+                        double *polyplaqpolyre,
+                        double *polyplaqpolyim)
+{
+int dspl;
+long rsp;
+double rep, imp;
+
+imp=0.0;
+rep=0.0;
+
+for(dspl=-(int)param->d_dspl; dspl<=(int)param->d_dspl; dspl++){
+   #ifdef OPENMP_MODE
+   #pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) reduction(+ : imp)
+   #endif
+   for(rsp=0; rsp<geo->d_space_vol; rsp++)
+      {
+      int j, t_tmp, t_plaq;
+      long r, r_plaq, rsp_tmp, rsp_plaq;
+      double complex p1, p2, pplaq;
+
+      for(j=1; j<STDIM; j++)
+         {
+         int i, k;
+
+         r=sisp_and_t_to_si(geo, rsp, 0);
+
+         for(i=0; i<param->d_dist_flux; i++)
+            {
+            r=nnp(geo, r, j);
+            if(i==(int)param->d_dist_flux/2)
+               {
+                  si_to_sisp_and_t(&rsp_plaq, &t_plaq, geo, r);
+               }
+            }
+      
+         si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
+         
+         p1=polyvec[rsp_tmp];
+         p2=polyvec[rsp];
+
+         for(t_plaq=0; t_plaq<geo->d_size[0]; t_plaq++)
+            {  
+               r_plaq=sisp_and_t_to_si(geo, rsp, t_plaq);
+
+               for(i=0; i<abs(dspl); i++){
+                  r_plaq=nnp(geo, r_plaq, k);
+               }
+
+               pplaq=plaquettep_complex(GC, geo, r_plaq, 0, j);
+               
+               rep+=creal(conj(p2)*pplaq*p1); // this is to be changed, it is way more convenient to first compute the avg of the plqeuttes 
+               imp+=cimag(conj(p2)*pplaq*p1);
+            }
+
+         }
+      }
+
+   *(polyplaqpolyre+dspl+param->d_dspl) = rep*geo->d_inv_space_vol/(STDIM-1)/geo->d_size[0]/(STDIM-2);
+   *(polyplaqpolyim+dspl+param->d_dspl) = imp*geo->d_inv_space_vol/(STDIM-1)/geo->d_size[0]/(STDIM-2);
+   }
+}
 
 // compute the local topological charge at point r
 // see readme for more details
@@ -1125,22 +1187,18 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf const * const G
                                              GParam const * const param,
                                              FILE *datafilep,
                                              FILE *datafilePP,
+                                             FILE *datafilePUP,
                                              double complex * poly_vec)
    {
    int i;
    double plaqs, plaqt, polyre[NCOLOR/2+1], polyim[NCOLOR/2+1]; // +1 just to avoid warning if NCOLOR=1
-   double polypolyre, polypolyim;
+   double polypolyre, polypolyim, polyplaqpolyre, polyplaqpolyim;
 
    //measurement of <U>
    plaquette(GC, geo, &plaqs, &plaqt);
    polyakov_for_tracedef(GC, geo, polyre, polyim);
 
    fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
-
-   for(i=0; i<(int)floor(NCOLOR/2); i++)
-      {
-      fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
-      }
    
    fprintf(datafilep, "\n");
    fflush(datafilep);
@@ -1155,9 +1213,16 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf const * const G
    fflush(datafilePP);
 
    // measurement of <P\dag U P>
+   poly_plaq_poly_corr(geo, param, GC, poly_vec, &polyplaqpolyre, &polyplaqpolyim);
+   
+   for(i=0; i<param->d_dspl*2+1; i++)
+      {
+      fprintf(datafilePUP, "%.12g %.12g ", polyplaqpolyre + i, polyplaqpolyim + i);
+      }
+   fprintf(datafilePUP, "\n");
+
+   fflush(datafilePUP);
    }
-
-
 
 // compute the average value of \sum_{flavours} Re(H_x U_{x,mu} H_{x+mu})
 void higgs_interaction(Gauge_Conf const * const GC,

@@ -27,7 +27,7 @@ void real_main(char *in_file)
     char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
     int count, err;
     double acc, acc_local;
-    FILE *datafilep, *monofilep;
+    FILE *datafilep, *monofilep, *datafilePP, *datafilePUP;
     time_t time1, time2;
 
     // to disable nested parallelism
@@ -43,6 +43,8 @@ void real_main(char *in_file)
 
     // open data_file
     init_data_file(&datafilep, &param);
+    init_data_PP_file(&datafilePP, &param);
+    init_data_PUP_file(&datafilePUP, &param);
 
     // open mon_file
     if(param.d_mon_meas == 1)
@@ -81,9 +83,10 @@ void real_main(char *in_file)
        acc+=acc_local;
 
        if(count % param.d_measevery ==0 && count >= param.d_thermal)
-         {
-         perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep, poly_vec, poly_corr);
-         }
+        {
+         //perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep, monofilep, poly_vec, poly_corr);
+          perform_measures_profile_flux_tube_with_tracedef(&GC, &geo, &param, datafilep, datafilePP, datafilePUP, poly_vec);
+        }
 
        // save configuration for backup
        if(param.d_saveconf_back_every!=0)
@@ -117,6 +120,8 @@ void real_main(char *in_file)
 
     // close data file
     fclose(datafilep);
+    fclose(datafilePP);
+    fclose(datafilePUP);
 
     // close mon file
     if(param.d_mon_meas == 1)
@@ -160,32 +165,35 @@ void print_template_input(void)
     }
   else
     {
-    fprintf(fp, "size 4 4 4 4\n");
+    fprintf(fp, "size 4 4 4\n");
     fprintf(fp,"\n");
-    fprintf(fp, "beta 5.705\n");
-    fprintf(fp, "htracedef  1.1\n");
-    fprintf(fp, "theta 1.5\n");
+    fprintf(fp, "beta 10.8075\n");
+    fprintf(fp, "htracedef 0.006\n");
+    fprintf(fp, "theta 0\n");
     fprintf(fp, "maxpolycorr 3\n");
     fprintf(fp, "dist_flux 9\n");
+    fprintf(fp, "transv_dspl 24\n");
     fprintf(fp,"\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
-    fprintf(fp, "overrelax 5\n");
+    fprintf(fp, "overrelax 4\n");
     fprintf(fp, "measevery 1\n");
     fprintf(fp, "monomeas 0   # 1=monopoles measures are performed\n");
     fprintf(fp,"\n");
     fprintf(fp, "start                   0  # 0=ordered  1=random  2=from saved configuration\n");
-    fprintf(fp, "saveconf_back_every     5  # if 0 does not save, else save backup configurations every ... updates\n");
-    fprintf(fp, "saveconf_analysis_every 5  # if 0 does not save, else save configurations for analysis every ... updates\n");
+    fprintf(fp, "saveconf_back_every     0  # if 0 does not save, else save backup configurations every ... updates\n");
+    fprintf(fp, "saveconf_analysis_every 0  # if 0 does not save, else save configurations for analysis every ... updates\n");
     fprintf(fp, "\n");
     fprintf(fp, "epsilon_metro    0.25  #distance from the identity of the random matrix for metropolis\n");
     fprintf(fp,"\n");
-    fprintf(fp, "coolsteps  3     # number of cooling steps to be used\n");
-    fprintf(fp, "coolrepeat 5     # number of times 'coolsteps' are repeated\n");
+    fprintf(fp, "coolsteps  0     # number of cooling steps to be used\n");
+    fprintf(fp, "coolrepeat 0     # number of times 'coolsteps' are repeated\n");
     fprintf(fp,"\n");
     fprintf(fp, "#output files\n");
     fprintf(fp, "conf_file  conf.dat\n");
     fprintf(fp, "data_file  dati.dat\n");
+    fprintf(fp, "data_PP_file  dati_PP.dat\n");
+    fprintf(fp, "data_PUP_file  dati_PUP.dat\n");
     fprintf(fp, "mon_file   mon.dat\n");
     fprintf(fp, "log_file   log.dat\n");
     fprintf(fp, "\n");

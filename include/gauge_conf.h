@@ -218,6 +218,12 @@ void poly_poly_corr(Geometry const * const geo,
                     double complex const * const polyvec, 
                     double *polyplaqpolyre,
                     double *polyplaqpolyim);
+void poly_plaq_poly_corr(Geometry const * const geo,
+                        GParam const * const param,
+                        Gauge_Conf const * const GC,
+                        double complex const * const polyvec, 
+                        double *polyplaqpolyre,
+                        double *polyplaqpolyim);
 void polyakov_adj(Gauge_Conf const * const GC,
                   Geometry const * const geo,
                   double *repoly,
@@ -247,6 +253,14 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const * const GC,
                                              FILE *monofilep,
                                              double complex * poly_vec,
                                              double complex * poly_corr);
+
+void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf const * const GC,
+                                             Geometry const * const geo,
+                                             GParam const * const param,
+                                             FILE *datafilep,
+                                             FILE *datafilePP,
+                                             FILE *datafilePUP,
+                                             double complex * poly_vec);
 
 void higgs_interaction(Gauge_Conf const * const GC,
                        Geometry const * const geo,

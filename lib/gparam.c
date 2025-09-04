@@ -178,6 +178,16 @@ void readinput(char *in_file, GParam *param)
                     }
                   param->d_dist_flux=temp_i;
                   }
+            else if(strncmp(str, "transv_dspl", 11)==0)
+                  {
+                  err=fscanf(input, "%d", &temp_i);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  param->d_dspl=temp_i;
+                  }
            else if(strncmp(str, "higgs_beta", 10)==0)
                   {
                   err=fscanf(input, "%lf", &temp_d);
@@ -432,6 +442,27 @@ void readinput(char *in_file, GParam *param)
                     }
                   strcpy(param->d_data_file, temp_str);
                   }
+          // flux tube profile files
+            else if(strncmp(str, "data_PP_file", 12)==0)
+                  { 
+                  err=fscanf(input, "%s", temp_str);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  strcpy(param->d_data_PP_file, temp_str);
+                  }
+            else if(strncmp(str, "data_PUP_file", 13)==0)
+                  { 
+                  err=fscanf(input, "%s", temp_str);
+                  if(err!=1)
+                    {
+                    fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file, __FILE__, __LINE__);
+                    exit(EXIT_FAILURE);
+                    }
+                  strcpy(param->d_data_PUP_file, temp_str);
+                  }
 	   // MONOPOLES file
 	   else if(strncmp(str, "mon_file", 8)==0)
                   { 
@@ -576,6 +607,78 @@ void init_data_file(FILE **dataf, GParam const * const param)
   else
     {
     *dataf=fopen(param->d_data_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for(i=0; i<STDIM; i++)
+       {
+       fprintf(*dataf, "%d ", param->d_sizeg[i]);
+       }
+    fprintf(*dataf, "\n");
+    }
+  fflush(*dataf);
+  }
+
+void init_data_PP_file(FILE **dataf, GParam const * const param)
+  {
+  int i;
+
+  if(param->d_start==2)
+    {
+    *dataf=fopen(param->d_data_PP_file, "r");
+    if(*dataf!=NULL) // file exists
+      {
+      fclose(*dataf);
+      *dataf=fopen(param->d_data_PP_file, "a");
+      }
+    else
+      {
+      *dataf=fopen(param->d_data_PP_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for(i=0; i<STDIM; i++)
+         {
+         fprintf(*dataf, "%d ", param->d_sizeg[i]);
+         }
+      fprintf(*dataf, "\n");
+      }
+    }
+  else
+    {
+    *dataf=fopen(param->d_data_PP_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for(i=0; i<STDIM; i++)
+       {
+       fprintf(*dataf, "%d ", param->d_sizeg[i]);
+       }
+    fprintf(*dataf, "\n");
+    }
+  fflush(*dataf);
+  }
+
+void init_data_PUP_file(FILE **dataf, GParam const * const param)
+  {
+  int i;
+
+  if(param->d_start==2)
+    {
+    *dataf=fopen(param->d_data_PUP_file, "r");
+    if(*dataf!=NULL) // file exists
+      {
+      fclose(*dataf);
+      *dataf=fopen(param->d_data_PUP_file, "a");
+      }
+    else
+      {
+      *dataf=fopen(param->d_data_PUP_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for(i=0; i<STDIM; i++)
+         {
+         fprintf(*dataf, "%d ", param->d_sizeg[i]);
+         }
+      fprintf(*dataf, "\n");
+      }
+    }
+  else
+    {
+    *dataf=fopen(param->d_data_PUP_file, "w");
     fprintf(*dataf, "%d ", STDIM);
     for(i=0; i<STDIM; i++)
        {
