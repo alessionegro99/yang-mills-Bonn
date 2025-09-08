@@ -1331,8 +1331,8 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   }
   fprintf(datafilep, "\n");
 
-  for (wt = 1; wt <= (int)geo->d_size[0]; wt++) {
-    for (ws = 1; ws < (int)geo->d_size[1]; ws++) {
+  for (ws = 1; ws <= (int)geo->d_size[1]; ws++) {
+    for (wt = 1; wt < (int)geo->d_size[0]; wt++) {
       fprintf(datafileW, "%.12g ", Wilsont_obc_avg(GC, geo, wt, ws));
     }
   }
