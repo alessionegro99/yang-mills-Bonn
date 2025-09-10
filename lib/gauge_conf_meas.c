@@ -326,7 +326,8 @@ int compute_nfaces_sp_sublat(Geometry const *const geo, int dis) {
 }
 
 void plaquette_obc_fve(Gauge_Conf const *const GC, Geometry const *const geo,
-                       double *plaqs, double *plaqt, int dis) {
+                       GParam const *const param, double *plaqs, double *plaqt,
+                       int dis) {
   long r;
   int nfaces_t, nfaces_sp;
   int measure_sp, measure_t, measure_t_dir[STDIM - 1];
@@ -1325,7 +1326,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   double plaqs, plaqt;
 
   for (dis = 0; dis <= param->d_dis_max; dis++) {
-    plaquette_obc_fve(GC, geo, &plaqs, &plaqt, dis);
+    plaquette_obc_fve(GC, geo, param, &plaqs, &plaqt, dis);
     fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
   }
   fprintf(datafilep, "\n");

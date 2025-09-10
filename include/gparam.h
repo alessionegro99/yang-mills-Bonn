@@ -17,6 +17,7 @@ typedef struct GParam {
   double d_higgs_beta;
   int d_poly_corr;
   int d_dis_max;
+  int d_npsdirs;
 
   // simulation details
   int d_sample;

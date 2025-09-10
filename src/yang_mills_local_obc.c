@@ -53,7 +53,7 @@ void real_main(char *in_file) {
   init_gauge_conf(&GC, &geo, &param);
 
   // apply obc in the STDIM-1 spatial directions
-  apply_obc_spatial(&GC, &geo);
+  apply_obc_spatial(&GC, &geo, &param);
 
   // montecarlo
   time(&time1);
@@ -136,6 +136,8 @@ void print_template_input(void) {
     fprintf(fp, "monomeas  0  # 1=monopoles measures are performed\n");
     fprintf(fp, "r0 0 0  # x^1_0, x^2_0, ... , x^{STDIM-1}_0\n");
     fprintf(fp, "dis_max 0\n");
+    fprintf(fp, "number_periodic_sp_directions 0 # 0, 1, ..., STDIM-1 periodic "
+                "spatial directions\n");
     fprintf(fp, "\n");
     fprintf(fp, "start                   0  # 0=ordered  1=random  2=from "
                 "saved configuration\n");
