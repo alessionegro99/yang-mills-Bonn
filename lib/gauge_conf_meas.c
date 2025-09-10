@@ -1320,9 +1320,8 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
-                                   GParam const *const param, FILE *datafilep,
-                                   FILE *datafileW) {
-  int dis, wt, ws;
+                                   GParam const *const param, FILE *datafilep) {
+  int dis;
   double plaqs, plaqt;
 
   for (dis = 0; dis <= param->d_dis_max; dis++) {
@@ -1331,15 +1330,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   }
   fprintf(datafilep, "\n");
 
-  for (ws = 1; ws <= (int)geo->d_size[1]; ws++) {
-    for (wt = 1; wt < (int)geo->d_size[0]; wt++) {
-      fprintf(datafileW, "%.12g ", Wilsont_obc_avg(GC, geo, wt, ws));
-    }
-  }
-  fprintf(datafileW, "\n");
-
   fflush(datafilep);
-  fflush(datafileW);
 }
 
 // perform local observables in the case of trace deformation, it computes all
