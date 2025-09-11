@@ -716,7 +716,7 @@ double Wilsont_obc_avg(Gauge_Conf const *const GC, Geometry const *const geo,
     int j;
     for (j = 1; j < STDIM; j++) {
       aux = Wilsonp(GC, geo, 0, j, wt, ws, r);
-      if (fabs(aux) != 0.0) {
+      if (fabs(aux) < 1e-12) {
         ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
         count++;
       }
@@ -738,7 +738,7 @@ double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
 
   ris = 0;
 #ifdef OPENMP_MODE
-#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#pragma omp parallel for num_threads(NTHREADS) private(t) reduction(+ : ris)
 #endif
   for (t = 0; t < geo->d_size[0]; t++) {
     r = sisp_and_t_to_si(geo, rsp, t);
@@ -747,6 +747,33 @@ double staircase_Wilsont_xy_obc(Gauge_Conf const *const GC,
   }
 
   ris /= geo->d_size[0];
+
+  return ris;
+}
+
+// averaged temporal multi-step staircase Wilson loop of size
+// (wt,ws*sqrt(2)) in the (1,2)=(x,y) plane
+double staircase_Wilsont_xy_obc_avg(Gauge_Conf const *const GC,
+                                    Geometry const *const geo, int wt, int ws,
+                                    int extra) {
+  int count;
+  long r;
+  double aux, ris;
+
+  ris = 0;
+  count = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    aux = staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r, extra);
+    if (fabs(aux) < 1e-12) {
+      ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r, extra);
+      count++;
+    }
+  }
+
+  ris /= count;
 
   return ris;
 }
@@ -1321,7 +1348,7 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 void perform_measures_localobs_obc(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
                                    GParam const *const param, FILE *datafilep,
-                                   FILE *datafileW) {
+                                   FILE *datafileW, FILE *datafilesW) {
   int dis, wt, ws;
   double plaqs, plaqt;
 
@@ -1338,8 +1365,17 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   }
   fprintf(datafileW, "\n");
 
+  if ((int)geo->d_size[1] == 3) {
+    for (wt = 1; wt < (int)geo->d_size[0]; wt++) {
+      fprintf(datafilesW, "%.12g ",
+              staircase_Wilsont_xy_obc_avg(GC, geo, wt, 1, 0));
+    }
+    fprintf(datafilesW, "\n");
+  }
+
   fflush(datafilep);
   fflush(datafileW);
+  fflush(datafilesW);
 }
 
 // perform local observables in the case of trace deformation, it computes all

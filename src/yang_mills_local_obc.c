@@ -60,7 +60,7 @@ void real_main(char *in_file)
     time(&time1);
 
     // check on the starting conf
-    perform_measures_localobs_obc(&GC, &geo, &param, datafilep, datafileW);
+    perform_measures_localobs_obc(&GC, &geo, &param, datafilep, datafileW, datafilesW);
     // count starts from 1 to avoid problems using %
     for(count=1; count < param.d_sample + 1; count++)
        {        
@@ -68,7 +68,7 @@ void real_main(char *in_file)
 
         if(count % param.d_measevery ==0 && count >= param.d_thermal)
           {
-          perform_measures_localobs_obc(&GC, &geo, &param, datafilep, datafileW);
+          perform_measures_localobs_obc(&GC, &geo, &param, datafilep, datafileW, datafilesW);
           }
 
        // save configuration for backup
