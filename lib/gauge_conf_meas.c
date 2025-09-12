@@ -716,7 +716,7 @@ double Wilsont_obc_avg(Gauge_Conf const *const GC, Geometry const *const geo,
     int j;
     for (j = 1; j < STDIM; j++) {
       aux = Wilsonp(GC, geo, 0, j, wt, ws, r);
-      if (fabs(aux) < 1e-12) {
+      if (fabs(aux) > 1e-12) {
         ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
         count++;
       }
@@ -767,7 +767,7 @@ double staircase_Wilsont_xy_obc_avg(Gauge_Conf const *const GC,
 #endif
   for (r = 0; r < geo->d_volume; r++) {
     aux = staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r, extra);
-    if (fabs(aux) < 1e-12) {
+    if (fabs(aux) > 1e-12) {
       ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r, extra);
       count++;
     }
@@ -1357,6 +1357,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
   }
   fprintf(datafilep, "\n");
+  fflush(datafilep);
 
   for (ws = 1; ws < (int)geo->d_size[1]; ws++) {
     for (wt = 1; wt < (int)geo->d_size[0]; wt++) {
@@ -1364,6 +1365,7 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
   }
   fprintf(datafileW, "\n");
+  fflush(datafileW);
 
   if ((int)geo->d_size[1] == 3) {
     for (wt = 1; wt < (int)geo->d_size[0]; wt++) {
@@ -1372,9 +1374,6 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
     }
     fprintf(datafilesW, "\n");
   }
-
-  fflush(datafilep);
-  fflush(datafileW);
   fflush(datafilesW);
 }
 
