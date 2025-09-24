@@ -1,5 +1,5 @@
-#ifndef YM_TUBE_DISC_C
-#define YM_TUBE_DISC_C
+#ifndef YM_TRACEDEF_TUBE_DISC_C
+#define YM_TRACEDEF_TUBE_DISC_C
 
 #include "../include/macro.h"
 
@@ -23,8 +23,10 @@ void real_main(char *in_file) {
   Geometry geo;
   GParam param;
 
-  int count;
-  FILE *datafilep;
+  char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
+  int count, err;
+  double acc, acc_local;
+  FILE *datafilep, *monofilep;
   time_t time1, time2;
 
 // to disable nested parallelism
@@ -50,6 +52,11 @@ void real_main(char *in_file) {
   // open data_file
   init_data_file(&datafilep, &param);
 
+  // open mon_file
+  if (param.d_mon_meas == 1) {
+    init_mon_file(&monofilep, &param);
+  }
+
   // initialize geometry
   init_geometry(&geo, param.d_sizeg);
 
@@ -57,16 +64,61 @@ void real_main(char *in_file) {
   init_gauge_conf(&GC, &geo, &param);
 
   // allocate ml_polycorr and ml_polyplaq arrays
-  alloc_tube_disc_stuff(&GC, &geo, &param);
+  alloc_tracedef_tube_disc_stuff(&GC, &geo, &param);
+
+  // initialize plaquette tower 2d vector
+  double complex **plaq_tower_vec;
+  err = posix_memalign((void **)&plaq_tower_vec, (size_t)DOUBLE_ALIGN,
+                       (size_t)geo.d_space_vol * sizeof(double complex *));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  for (int rsp = 0; rsp < geo.d_space_vol; rsp++) {
+    err = posix_memalign((void **)&plaq_tower_vec[rsp], (size_t)DOUBLE_ALIGN,
+                         (size_t)(STDIM - 1) * sizeof(double complex));
+    if (err != 0) {
+      fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
+              __LINE__);
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // initialize polyakov loop vector
+  double complex *poly_vec;
+  err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
+                       (size_t)geo.d_space_vol * sizeof(double complex));
+
+  // initialize polyakov loop correlator vector
+  double complex *poly_corr;
+  err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
+                       (size_t)param.d_poly_corr * sizeof(double complex));
+
+  // initialize polyakov loop correlator vector
+  double complex *poly_plaq_poly_vec;
+  err = posix_memalign((void **)&poly_plaq_poly_vec, DOUBLE_ALIGN,
+                       (size_t)(param.d_dspl * 2 + 1) * sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  // acceptance of the metropolis update
+  acc = 0.0;
 
   // montecarlo
   time(&time1);
   // count starts from 1 to avoid problems using %
   for (count = 1; count < param.d_sample + 1; count++) {
-    update(&GC, &geo, &param);
+    update_with_trace_def(&GC, &geo, &param, &acc_local);
+    acc += acc_local;
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_tube_disc(&GC, &geo, &param, datafilep);
+      perform_measures_profile_flux_tube_with_tracedef(
+          &GC, &geo, &param, datafilep, poly_vec, plaq_tower_vec,
+          poly_plaq_poly_vec);
     }
 
     // save configuration for backup
@@ -79,12 +131,29 @@ void real_main(char *in_file) {
         write_conf_on_file_back(&GC, &geo, &param);
       }
     }
+
+    // save configuration for offline analysis
+    if (param.d_saveconf_analysis_every != 0) {
+      if (count % param.d_saveconf_analysis_every == 0) {
+        strcpy(name, param.d_conf_file);
+        sprintf(aux, "%ld", GC.update_index);
+        strcat(name, aux);
+        write_conf_on_file_with_name(&GC, &geo, name);
+      }
+    }
   }
   time(&time2);
   // montecarlo end
 
+  acc /= (double)param.d_sample;
+
   // close data file
   fclose(datafilep);
+
+  // close mon file
+  if (param.d_mon_meas == 1) {
+    fclose(monofilep);
+  }
 
   // save configuration
   if (param.d_saveconf_back_every != 0) {
@@ -92,13 +161,13 @@ void real_main(char *in_file) {
   }
 
   // print simulation details
-  print_parameters_tube_disc(&param, time1, time2);
+  print_parameters_tracedef_tube_disc(&param, time1, time2, acc);
+
+  // free ml_polycorr and ml_polyplaq
+  free_tracedef_tube_disc_stuff(&GC, &geo, &param);
 
   // free gauge configuration
   free_gauge_conf(&GC, &geo);
-
-  // free ml_polycorr and ml_polyplaq
-  free_tube_disc_stuff(&GC, &geo, &param);
 
   // free geometry
   free_geometry(&geo);
@@ -116,25 +185,30 @@ void print_template_input(void) {
   } else {
     fprintf(fp, "size 4 4 4 4\n");
     fprintf(fp, "\n");
-    fprintf(fp, "beta 5.705\n");
-    fprintf(fp, "theta 1.5\n");
+    fprintf(fp, "beta 10.8075\n");
+    fprintf(fp, "htracedef 0.006\n");
+    fprintf(fp, "theta 0\n");
     fprintf(fp, "\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
     fprintf(fp, "overrelax 5\n");
     fprintf(fp, "measevery 1\n");
+    fprintf(fp, "monomeas 0   # 1=monopoles measures are performed\n");
     fprintf(fp, "\n");
     fprintf(fp, "start                   0  # 0=ordered  1=random  2=from "
                 "saved configuration\n");
-    fprintf(fp, "saveconf_back_every     5  # if 0 does not save, else save "
+    fprintf(fp, "saveconf_back_every     0  # if 0 does not save, else save "
                 "backup configurations every ... updates\n");
+    fprintf(fp, "saveconf_analysis_every 0  # if 0 does not save, else save "
+                "configurations for analysis every ... updates\n");
     fprintf(fp, "\n");
-    fprintf(fp, "#for multilevel\n");
-    fprintf(fp, "multihit         10  # number of multihit step\n");
-    fprintf(fp, "ml_step          2   # timeslices for multilevel (from "
-                "largest to smallest)\n");
+    fprintf(fp, "epsilon_metro    0.25  #distance from the identity of the "
+                "random matrix for metropolis\n");
+    fprintf(fp, "\n");
+    fprintf(fp, "coolsteps  0     # number of cooling steps to be used\n");
     fprintf(fp,
-            "ml_upd           10  # number of updates for various levels\n");
+            "coolrepeat 0     # number of times 'coolsteps' are repeated\n");
+    fprintf(fp, "\n");
     fprintf(fp, "dist_poly        2   # distance between the polyakov loop\n");
     fprintf(fp, "transv_dist      2   # transverse distance from the polyakov "
                 "correlator\n");

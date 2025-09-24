@@ -567,6 +567,7 @@ void polyakov_corr(Geometry const *const geo, GParam const *const param,
   }
 }
 
+/*
 // compute the Polyakov Polyakov correlator at a fixed distance
 void poly_poly_corr(Geometry const *const geo, GParam const *const param,
                     double complex const *const polyvec,
@@ -630,58 +631,59 @@ void plaquette_tower_vec(Gauge_Conf const *const GC, Geometry const *const geo,
 // Polyakov loops at a distance d=2n+1, n positive integer and the plaquette in
 // the middle. The plaquette corresponds to the chromo-electric field in the
 // direction of the separation between the two Polyakov loops.
-void poly_plaq_poly_corr(Geometry const *const geo, GParam const *const param,
-                         double complex const *const polyvec,
-                         double complex **plaq_tower_vec,
-                         double complex *poly_plaq_poly_corr) {
-  int dspl;
-  long rsp;
-  double rep, imp;
+// void poly_plaq_poly_corr(Geometry const *const geo, GParam const *const param,
+//                          double complex const *const polyvec,
+//                          double complex **plaq_tower_vec,
+//                          double complex *poly_plaq_poly_corr) {
+//   int dspl;
+//   long rsp;
+//   double rep, imp;
 
-  for (dspl = -(int)param->d_dspl; dspl <= (int)param->d_dspl; dspl++) {
-    rep = 0.0;
-    imp = 0.0;
-#ifdef OPENMP_MODE
-#pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) \
-    reduction(+ : imp)
-#endif
-    for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
-      int j, t_tmp, t_plaq;
-      long r, rsp_tmp, rsp_plaq;
-      double complex p1, p2, plaq_tower;
-      plaq_tower = 0.0;
+//   for (dspl = -(int)param->d_dspl; dspl <= (int)param->d_dspl; dspl++) {
+//     rep = 0.0;
+//     imp = 0.0;
+// #ifdef OPENMP_MODE
+// #pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) \
+//     reduction(+ : imp)
+// #endif
+//     for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
+//       int j, t_tmp, t_plaq;
+//       long r, rsp_tmp, rsp_plaq;
+//       double complex p1, p2, plaq_tower;
+//       plaq_tower = 0.0;
 
-      for (j = 1; j < STDIM; j++) {
-        int i;
+//       for (j = 1; j < STDIM; j++) {
+//         int i;
 
-        r = sisp_and_t_to_si(geo, rsp, 0);
+//         r = sisp_and_t_to_si(geo, rsp, 0);
 
-        for (i = 0; i < param->d_dist_flux; i++) {
-          if (i == (int)param->d_dist_flux / 2) {
-            // add measurement displacement
-            si_to_sisp_and_t(&rsp_plaq, &t_plaq, geo, r);
-            fprintf(stdout, "%d %ld %ld\n", i, rsp, rsp_plaq);
-            plaq_tower = plaq_tower_vec[rsp_plaq][j];
-          }
-          r = nnp(geo, r, j);
-        }
-        si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
+//         for (i = 0; i < param->d_dist_flux; i++) {
+//           if (i == (int)param->d_dist_flux / 2) {
+//             // add measurement displacement
+//             si_to_sisp_and_t(&rsp_plaq, &t_plaq, geo, r);
+//             fprintf(stdout, "%d %ld %ld\n", i, rsp, rsp_plaq);
+//             plaq_tower = plaq_tower_vec[rsp_plaq][j];
+//           }
+//           r = nnp(geo, r, j);
+//         }
+//         si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
 
-        p1 = polyvec[rsp_tmp];
-        p2 = polyvec[rsp];
+//         p1 = polyvec[rsp_tmp];
+//         p2 = polyvec[rsp];
 
-        rep += creal(conj(p2) * plaq_tower * p1);
-        imp += cimag(conj(p2) * plaq_tower * p1);
-      }
-    }
+//         rep += creal(conj(p2) * plaq_tower * p1);
+//         imp += cimag(conj(p2) * plaq_tower * p1);
+//       }
+//     }
 
-    int offset;
-    offset = dspl + param->d_dspl;
+//     int offset;
+//     offset = dspl + param->d_dspl;
 
-    *(poly_plaq_poly_corr + offset) =
-        (rep + I * imp) * geo->d_inv_space_vol / (STDIM - 1);
-  }
-}
+//     *(poly_plaq_poly_corr + offset) =
+//         (rep + I * imp) * geo->d_inv_space_vol / (STDIM - 1);
+//   }
+// }
+*/
 
 // compute the local topological charge at point r
 // see readme for more details
@@ -911,8 +913,8 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
   }
 }
 
-// perform local observables in the case of trace deformation, it computes all
-// the order parameters
+// perform measurement of local observables in the case of trace deformation, it
+// computes all the order parameters
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,
                                              GParam const *const param,
@@ -1083,9 +1085,9 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 #endif
   }
 }
-
-// perform local observables in the case of trace deformation, it computes all
-// the order parameters
+/*
+// perform measurement of the flux tube profile  in the case of trace
+// deformation, it computes all the order parameters
 void perform_measures_profile_flux_tube_with_tracedef(
     Gauge_Conf const *const GC, Geometry const *const geo,
     GParam const *const param, FILE *datafilep, FILE *datafilePP,
@@ -1126,6 +1128,7 @@ void perform_measures_profile_flux_tube_with_tracedef(
 
   fflush(datafilePUP);
 }
+*/
 
 // compute the average value of \sum_{flavours} Re(H_x U_{x,mu} H_{x+mu})
 void higgs_interaction(Gauge_Conf const *const GC, Geometry const *const geo,
