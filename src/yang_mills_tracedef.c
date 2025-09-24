@@ -59,7 +59,7 @@ void real_main(char *in_file) {
   err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
                        (size_t)geo.d_space_vol * sizeof(double complex));
   if (err != 0) {
-    fprintf(stderr, "Problems in allocating ml_polycorr (%s, %d)\n", __FILE__,
+    fprintf(stderr, "Problems in allocating poly_vec (%s, %d)\n", __FILE__,
             __LINE__);
     exit(EXIT_FAILURE);
   }
@@ -69,7 +69,7 @@ void real_main(char *in_file) {
   err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
                        (size_t)param.d_poly_corr * sizeof(double complex));
   if (err != 0) {
-    fprintf(stderr, "Problems in allocating ml_polycorr (%s, %d)\n", __FILE__,
+    fprintf(stderr, "Problems in allocating poly_corr (%s, %d)\n", __FILE__,
             __LINE__);
     exit(EXIT_FAILURE);
   }

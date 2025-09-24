@@ -40,7 +40,7 @@ void real_main(char *in_file) {
   int tmp = param.d_sizeg[1];
   for (count = 2; count < STDIM; count++) {
     if (tmp != param.d_sizeg[count]) {
-      fprintf(stderr, "When using yang_mills_tube_disc all the spatial sizes "
+      fprintf(stderr, "When using yang_mills_tracedef_tube_disc all the spatial sizes "
                       "have to be of equal length.\n");
       exit(EXIT_FAILURE);
     }

@@ -35,6 +35,10 @@ typedef struct Gauge_Conf {
   GAUGE_GROUP *loc_plaqconn;  // [only slice 0][space_vol] auxilliary vector to
                               // be used in the multilevel
 
+  // for the disconnected correlator for string width with trace deformation
+  double complex *tracedef_polyplaq; // [space_vol]
+  double complex *tracedef_loc_plaq;    // [space_vol]
+
   // for higgs field & co
   GAUGE_VECS *higgs;  // [volume]
   FMatrix *Qh;        // [volume]

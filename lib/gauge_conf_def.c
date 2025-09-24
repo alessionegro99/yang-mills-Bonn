@@ -648,7 +648,7 @@ void alloc_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
   }
 }
 
-// free the ml_polycorr, ml_polyplaq arrays and relates stuff
+// free the ml_polycorr, ml_polyplaq arrays and related stuff
 void free_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
                           GParam const *const param) {
   int i;
@@ -661,6 +661,40 @@ void free_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
   free(GC->ml_polyplaq);
 
   free(GC->loc_plaq);
+}
+
+// allocate the ml_polycorr, polyplaq arrays and related stuff with tracedef no
+// ml
+void alloc_tracedef_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
+                                    GParam const *const param) {
+  int i, err;
+
+  err = posix_memalign((void **)&(GC->tracedef_polyplaq), (size_t)DOUBLE_ALIGN,
+                       (size_t)geo->d_space_vol * sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating tracedef_polyplaq (%s, %d)\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  err = posix_memalign((void **)&(GC->tracedef_loc_plaq), (size_t)DOUBLE_ALIGN,
+                       (size_t)geo->d_space_vol * sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating tracedef_loc_plaq (%s, %d)\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+}
+
+// free the ml_polycorr, ml_polyplaq arrays and related stuff with tracedef no
+// ml
+void free_tracedef_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
+                                   GParam const *const param) {
+  int i;
+
+  free(GC->tracedef_polyplaq);
+
+  free(GC->tracedef_loc_plaq);
 }
 
 // save ml_polycorr[0] and ml_polyplaq[0] arrays on file
@@ -747,7 +781,8 @@ void read_tube_disc_stuff_from_file(Gauge_Conf const *const GC,
   }
   fclose(fp);
 
-  fp = fopen(param->d_ml_file, "rb"); // open the multilevel file in binary mode
+  fp = fopen(param->d_ml_file,
+             "rb"); // open the multilevel file in binary mode
   if (fp == NULL) {
     fprintf(stderr, "Error in opening the file %s (%s, %d)\n", param->d_ml_file,
             __FILE__, __LINE__);
@@ -991,7 +1026,8 @@ void read_tube_conn_stuff_from_file(Gauge_Conf const *const GC,
   }
   fclose(fp);
 
-  fp = fopen(param->d_ml_file, "rb"); // open the multilevel file in binary mode
+  fp = fopen(param->d_ml_file,
+             "rb"); // open the multilevel file in binary mode
   if (fp == NULL) {
     fprintf(stderr, "Error in opening the file %s (%s, %d)\n", param->d_ml_file,
             __FILE__, __LINE__);
