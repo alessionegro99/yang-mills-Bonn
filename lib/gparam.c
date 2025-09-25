@@ -992,6 +992,85 @@ void print_parameters_t0(GParam *param, time_t time_start, time_t time_end) {
   fclose(fp);
 }
 
+// print simulation parameters tube disc with tracedef
+void print_parameters_tube_disc_tracedef(GParam const *const param,
+                                         time_t time_start, time_t time_end,
+                                         double acc) {
+  FILE *fp;
+  int i;
+  double diff_sec;
+
+  fp = fopen(param->d_log_file, "w");
+  fprintf(fp, "+------------------------------------------------------+\n");
+  fprintf(fp, "| Simulation details for yang_mills_tube_disc_tracedef |\n");
+  fprintf(fp, "+------------------------------------------------------+\n\n");
+
+#ifdef OPENMP_MODE
+  fprintf(fp, "using OpenMP with %d threads\n\n", NTHREADS);
+#endif
+
+  fprintf(fp, "number of colors: %d\n", NCOLOR);
+  fprintf(fp, "spacetime dimensionality: %d\n\n", STDIM);
+
+  fprintf(fp, "lattice: %d", param->d_sizeg[0]);
+  for (i = 1; i < STDIM; i++) {
+    fprintf(fp, "x%d", param->d_sizeg[i]);
+  }
+  fprintf(fp, "\n\n");
+
+  fprintf(fp, "beta: %.10lf\n", param->d_beta);
+#ifdef THETA_MODE
+  fprintf(fp, "theta: %.10lf\n", param->d_theta);
+#endif
+  fprintf(fp, "h: %.10lf ", param->d_h[0]);
+  for (i = 1; i < (int)floor(NCOLOR / 2.0); i++) {
+    fprintf(fp, "%.10lf ", param->d_h[i]);
+  }
+  fprintf(fp, "\n\n");
+
+  fprintf(fp, "sample:    %d\n", param->d_sample);
+  fprintf(fp, "thermal:   %d\n", param->d_thermal);
+  fprintf(fp, "overrelax: %d\n", param->d_overrelax);
+  fprintf(fp, "measevery: %d\n", param->d_measevery);
+  fprintf(fp, "monopoles: %d\n", param->d_mon_meas);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "start:                   %d\n", param->d_start);
+  fprintf(fp, "saveconf_back_every:     %d\n", param->d_saveconf_back_every);
+  fprintf(fp, "saveconf_analysis_every: %d\n",
+          param->d_saveconf_analysis_every);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "epsilon_metro: %.10lf\n", param->d_epsilon_metro);
+  fprintf(fp, "metropolis acceptance: %.10lf\n", acc);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "coolsteps:      %d\n", param->d_coolsteps);
+  fprintf(fp, "coolrepeat:     %d\n", param->d_coolrepeat);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "\n");
+  fprintf(fp, "dist_poly:   %d\n", param->d_dist_poly);
+  fprintf(fp, "transv_dist: %d\n", param->d_trasv_dist);
+  fprintf(fp, "plaq_dir: %d %d\n", param->d_plaq_dir[0], param->d_plaq_dir[1]);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "randseed: %u\n", param->d_randseed);
+  fprintf(fp, "\n");
+
+  diff_sec = difftime(time_end, time_start);
+  fprintf(fp, "Simulation time: %.3lf seconds\n", diff_sec);
+  fprintf(fp, "\n");
+
+  if (endian() == 0) {
+    fprintf(fp, "Little endian machine\n\n");
+  } else {
+    fprintf(fp, "Big endian machine\n\n");
+  }
+
+  fclose(fp);
+}
+
 // print simulation parameters for the tracedef case
 void print_parameters_tracedef(GParam const *const param, time_t time_start,
                                time_t time_end, double acc) {

@@ -36,8 +36,7 @@ typedef struct Gauge_Conf {
                               // be used in the multilevel
 
   // for the disconnected correlator for string width with trace deformation
-  double complex *tracedef_polyplaq; // [space_vol]
-  double complex *tracedef_loc_plaq;    // [space_vol]
+  double complex *loc_poly_vec; // [space_vol]
 
   // for higgs field & co
   GAUGE_VECS *higgs;  // [volume]
@@ -95,6 +94,8 @@ void alloc_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
                            GParam const *const param);
 void free_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
                           GParam const *const param);
+void alloc_tube_disc_tracedef_stuff(Gauge_Conf *GC, Geometry const *const geo);
+void free_tube_disc_tracedef_stuff(Gauge_Conf *GC);
 void write_tube_disc_stuff_on_file(Gauge_Conf const *const GC,
                                    Geometry const *const geo,
                                    GParam const *const param, int iteration);
@@ -170,13 +171,6 @@ void polyakov_corr_FT(Geometry const *const geo,
 void polyakov_corr(Geometry const *const geo, GParam const *const param,
                    double complex const *const polyvec,
                    double complex *polycorr);
-void poly_poly_corr(Geometry const *const geo, GParam const *const param,
-                    double complex const *const polyvec,
-                    double complex *poly_plaq_poly_vec);
-void poly_plaq_poly_corr(Geometry const *const geo, GParam const *const param,
-                         double complex const *const polyvec,
-                         double complex **plaq_tower_vec,
-                         double complex *poly_plaq_poly_vec);
 void polyakov_adj(Gauge_Conf const *const GC, Geometry const *const geo,
                   double *repoly, double *impoly);
 void polyakov_for_tracedef(Gauge_Conf const *const GC,
@@ -199,11 +193,13 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              double complex *poly_vec,
                                              double complex *poly_corr);
 
-void perform_measures_profile_flux_tube_with_tracedef(
-    Gauge_Conf const *const GC, Geometry const *const geo,
-    GParam const *const param, FILE *datafilep, FILE *datafilePP,
-    FILE *datafilePUP, double complex *poly_vec,
-    double complex **plaq_tower_vec, double complex *poly_plaq_poly_vec);
+void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
+                                          Geometry const *const geo,
+                                          GParam const *const param);
+void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
+                                              Geometry const *const geo,
+                                              GParam const *const param,
+                                              FILE *datafilep);
 
 void higgs_interaction(Gauge_Conf const *const GC, Geometry const *const geo,
                        double *he);

@@ -44,6 +44,8 @@ typedef struct GParam {
   int d_ml_step[NLEVELS];
   int d_ml_upd[NLEVELS];
   int d_ml_level0_repeat;
+
+  // for tube disc measurement
   int d_dist_poly;
   int d_trasv_dist;
   int d_plaq_dir[2];
@@ -79,6 +81,7 @@ void print_parameters_spectrum(GParam const * const param, time_t time_start, ti
 
 void print_parameters_t0(GParam * param, time_t time_start, time_t time_end);
 
+void print_parameters_tube_disc_tracedef(GParam const * const param, time_t time_start, time_t time_end, double acc);
 void print_parameters_tracedef(GParam const * const param, time_t time_start, time_t time_end, double acc);
 
 void print_parameters_tube_disc(GParam * param, time_t time_start, time_t time_end);

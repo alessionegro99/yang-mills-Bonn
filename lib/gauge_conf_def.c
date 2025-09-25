@@ -663,38 +663,30 @@ void free_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
   free(GC->loc_plaq);
 }
 
-// allocate the ml_polycorr, polyplaq arrays and related stuff with tracedef no
-// ml
-void alloc_tracedef_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
-                                    GParam const *const param) {
-  int i, err;
+// allocate the loc_plaq, loc_poly_vec arrays
+void alloc_tube_disc_tracedef_stuff(Gauge_Conf *GC, Geometry const *const geo) {
+  int err;
 
-  err = posix_memalign((void **)&(GC->tracedef_polyplaq), (size_t)DOUBLE_ALIGN,
+  err = posix_memalign((void **)&(GC->loc_plaq), (size_t)DOUBLE_ALIGN,
                        (size_t)geo->d_space_vol * sizeof(double complex));
   if (err != 0) {
-    fprintf(stderr, "Problems in allocating tracedef_polyplaq (%s, %d)\n",
-            __FILE__, __LINE__);
+    fprintf(stderr, "Problems in allocating loc_plaq (%s, %d)\n", __FILE__,
+            __LINE__);
     exit(EXIT_FAILURE);
   }
 
-  err = posix_memalign((void **)&(GC->tracedef_loc_plaq), (size_t)DOUBLE_ALIGN,
+  err = posix_memalign((void **)&(GC->loc_poly_vec), (size_t)DOUBLE_ALIGN,
                        (size_t)geo->d_space_vol * sizeof(double complex));
   if (err != 0) {
-    fprintf(stderr, "Problems in allocating tracedef_loc_plaq (%s, %d)\n",
-            __FILE__, __LINE__);
+    fprintf(stderr, "Problems in allocating loc_poly_vec (%s, %d)\n", __FILE__,
+            __LINE__);
     exit(EXIT_FAILURE);
   }
 }
 
-// free the ml_polycorr, ml_polyplaq arrays and related stuff with tracedef no
-// ml
-void free_tracedef_tube_disc_stuff(Gauge_Conf *GC, Geometry const *const geo,
-                                   GParam const *const param) {
-  int i;
-
-  free(GC->tracedef_polyplaq);
-
-  free(GC->tracedef_loc_plaq);
+void free_tube_disc_tracedef_stuff(Gauge_Conf *GC) {
+  free(GC->loc_plaq);
+  free(GC->loc_poly_vec);
 }
 
 // save ml_polycorr[0] and ml_polyplaq[0] arrays on file

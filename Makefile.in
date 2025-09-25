@@ -94,6 +94,7 @@ bin_PROGRAMS = conf_check$(EXEEXT) debug_rng$(EXEEXT) \
 	yang_mills_polycorr_higgs$(EXEEXT) \
 	yang_mills_polycorr_higgs_long$(EXEEXT) \
 	yang_mills_spectrum$(EXEEXT) yang_mills_t0$(EXEEXT) \
+	yang_mills_tube_disc_tracedef$(EXEEXT) \
 	yang_mills_tracedef$(EXEEXT) yang_mills_tube_conn$(EXEEXT) \
 	yang_mills_tube_conn_long$(EXEEXT) \
 	yang_mills_tube_disc$(EXEEXT) \
@@ -206,6 +207,10 @@ am_yang_mills_t0_OBJECTS = ./src/yang_mills_t0.$(OBJEXT) \
 	$(am__objects_13)
 yang_mills_t0_OBJECTS = $(am_yang_mills_t0_OBJECTS)
 yang_mills_t0_LDADD = $(LDADD)
+am_yang_mills_tube_disc_tracedef_OBJECTS = ./src/yang_mills_tube_disc_tracedef.$(OBJEXT) \
+	$(am__objects_13)
+yang_mills_tube_disc_tracedef_OBJECTS = $(am_yang_mills_tube_disc_tracedef_OBJECTS)
+yang_mills_tube_disc_tracedef_LDADD = $(LDADD)
 am_yang_mills_tracedef_OBJECTS = ./src/yang_mills_tracedef.$(OBJEXT) \
 	$(am__objects_13)
 yang_mills_tracedef_OBJECTS = $(am_yang_mills_tracedef_OBJECTS)
@@ -268,6 +273,7 @@ am__depfiles_remade = ./lib/$(DEPDIR)/aligncheck.Po \
 	./src/$(DEPDIR)/yang_mills_polycorr_long.Po \
 	./src/$(DEPDIR)/yang_mills_spectrum.Po \
 	./src/$(DEPDIR)/yang_mills_t0.Po \
+	./src/$(DEPDIR)/yang_mills_tube_disc_tracedef.Po \
 	./src/$(DEPDIR)/yang_mills_tracedef.Po \
 	./src/$(DEPDIR)/yang_mills_tube_conn.Po \
 	./src/$(DEPDIR)/yang_mills_tube_conn_long.Po \
@@ -295,6 +301,7 @@ SOURCES = $(conf_check_SOURCES) $(debug_rng_SOURCES) \
 	$(yang_mills_polycorr_higgs_long_SOURCES) \
 	$(yang_mills_polycorr_long_SOURCES) \
 	$(yang_mills_spectrum_SOURCES) $(yang_mills_t0_SOURCES) \
+	$(yang_mills_tube_disc_tracedef_SOURCES) \
 	$(yang_mills_tracedef_SOURCES) $(yang_mills_tube_conn_SOURCES) \
 	$(yang_mills_tube_conn_long_SOURCES) \
 	$(yang_mills_tube_disc_SOURCES) \
@@ -308,6 +315,7 @@ DIST_SOURCES = $(conf_check_SOURCES) $(debug_rng_SOURCES) \
 	$(yang_mills_polycorr_higgs_long_SOURCES) \
 	$(yang_mills_polycorr_long_SOURCES) \
 	$(yang_mills_spectrum_SOURCES) $(yang_mills_t0_SOURCES) \
+	$(yang_mills_tube_disc_tracedef_SOURCES) \
 	$(yang_mills_tracedef_SOURCES) $(yang_mills_tube_conn_SOURCES) \
 	$(yang_mills_tube_conn_long_SOURCES) \
 	$(yang_mills_tube_disc_SOURCES) \
@@ -614,6 +622,9 @@ yang_mills_spectrum_SOURCES = ./src/yang_mills_spectrum.c \
 yang_mills_t0_SOURCES = ./src/yang_mills_t0.c \
                       $(everything)
 
+yang_mills_tube_disc_tracedef_SOURCES = ./src/yang_mills_tube_disc_tracedef.c \
+                                        $(everything)
+
 yang_mills_tracedef_SOURCES = ./src/yang_mills_tracedef.c \
                             $(everything)
 
@@ -860,6 +871,14 @@ yang_mills_spectrum$(EXEEXT): $(yang_mills_spectrum_OBJECTS) $(yang_mills_spectr
 yang_mills_t0$(EXEEXT): $(yang_mills_t0_OBJECTS) $(yang_mills_t0_DEPENDENCIES) $(EXTRA_yang_mills_t0_DEPENDENCIES) 
 	@rm -f yang_mills_t0$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(yang_mills_t0_OBJECTS) $(yang_mills_t0_LDADD) $(LIBS)
+
+./src/yang_mills_tube_disc_tracedef.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+
+yang_mills_tube_disc_tracedef$(EXEEXT): $(yang_mills_tube_disc_tracedef_OBJECTS) $(yang_mills_tube_disc_tracedef_DEPENDENCIES) $(EXTRA_yang_mills_tube_disc_tracedef_DEPENDENCIES) 
+	@rm -f yang_mills_tube_disc_tracedef$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(yang_mills_tube_disc_tracedef_OBJECTS) $(yang_mills_tube_disc_tracedef_LDADD) $(LIBS)
+
 ./src/yang_mills_tracedef.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 
@@ -933,6 +952,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_polycorr_long.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_spectrum.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_t0.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_tube_disc_tracedef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_tracedef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_tube_conn.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./src/$(DEPDIR)/yang_mills_tube_conn_long.Po@am__quote@ # am--include-marker
@@ -1273,6 +1293,7 @@ distclean: distclean-am
 	-rm -f ./src/$(DEPDIR)/yang_mills_polycorr_long.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_spectrum.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_t0.Po
+	-rm -f ./src/$(DEPDIR)/yang_mills_tube_disc_tracedef.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tracedef.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tube_conn.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tube_conn_long.Po
@@ -1359,6 +1380,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./src/$(DEPDIR)/yang_mills_polycorr_long.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_spectrum.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_t0.Po
+	-rm -f ./src/$(DEPDIR)/yang_mills_tube_disc_tracedef.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tracedef.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tube_conn.Po
 	-rm -f ./src/$(DEPDIR)/yang_mills_tube_conn_long.Po

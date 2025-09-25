@@ -24,7 +24,7 @@ void real_main(char *in_file) {
   GParam param;
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
-  int count, err;
+  int count;
   double acc, acc_local;
   FILE *datafilep, *monofilep;
   time_t time1, time2;
@@ -40,8 +40,9 @@ void real_main(char *in_file) {
   int tmp = param.d_sizeg[1];
   for (count = 2; count < STDIM; count++) {
     if (tmp != param.d_sizeg[count]) {
-      fprintf(stderr, "When using yang_mills_tracedef_tube_disc all the spatial sizes "
-                      "have to be of equal length.\n");
+      fprintf(stderr,
+              "When using yang_mills_tube_disc_tracedef all the spatial sizes "
+              "have to be of equal length.\n");
       exit(EXIT_FAILURE);
     }
   }
@@ -64,46 +65,7 @@ void real_main(char *in_file) {
   init_gauge_conf(&GC, &geo, &param);
 
   // allocate ml_polycorr and ml_polyplaq arrays
-  alloc_tracedef_tube_disc_stuff(&GC, &geo, &param);
-
-  // initialize plaquette tower 2d vector
-  double complex **plaq_tower_vec;
-  err = posix_memalign((void **)&plaq_tower_vec, (size_t)DOUBLE_ALIGN,
-                       (size_t)geo.d_space_vol * sizeof(double complex *));
-  if (err != 0) {
-    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
-            __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  for (int rsp = 0; rsp < geo.d_space_vol; rsp++) {
-    err = posix_memalign((void **)&plaq_tower_vec[rsp], (size_t)DOUBLE_ALIGN,
-                         (size_t)(STDIM - 1) * sizeof(double complex));
-    if (err != 0) {
-      fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
-              __LINE__);
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  // initialize polyakov loop vector
-  double complex *poly_vec;
-  err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
-                       (size_t)geo.d_space_vol * sizeof(double complex));
-
-  // initialize polyakov loop correlator vector
-  double complex *poly_corr;
-  err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
-                       (size_t)param.d_poly_corr * sizeof(double complex));
-
-  // initialize polyakov loop correlator vector
-  double complex *poly_plaq_poly_vec;
-  err = posix_memalign((void **)&poly_plaq_poly_vec, DOUBLE_ALIGN,
-                       (size_t)(param.d_dspl * 2 + 1) * sizeof(double complex));
-  if (err != 0) {
-    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
-            __LINE__);
-    exit(EXIT_FAILURE);
-  }
+  alloc_tube_disc_tracedef_stuff(&GC, &geo);
 
   // acceptance of the metropolis update
   acc = 0.0;
@@ -116,9 +78,8 @@ void real_main(char *in_file) {
     acc += acc_local;
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_profile_flux_tube_with_tracedef(
-          &GC, &geo, &param, datafilep, poly_vec, plaq_tower_vec,
-          poly_plaq_poly_vec);
+      perform_measures_profile_flux_tube_with_tracedef(&GC, &geo, &param,
+                                                       datafilep);
     }
 
     // save configuration for backup
@@ -161,10 +122,10 @@ void real_main(char *in_file) {
   }
 
   // print simulation details
-  print_parameters_tracedef_tube_disc(&param, time1, time2, acc);
+  print_parameters_tube_disc_tracedef(&param, time1, time2, acc);
 
   // free ml_polycorr and ml_polyplaq
-  free_tracedef_tube_disc_stuff(&GC, &geo, &param);
+  free_tube_disc_tracedef_stuff(&GC);
 
   // free gauge configuration
   free_gauge_conf(&GC, &geo);

@@ -567,123 +567,47 @@ void polyakov_corr(Geometry const *const geo, GParam const *const param,
   }
 }
 
-/*
-// compute the Polyakov Polyakov correlator at a fixed distance
-void poly_poly_corr(Geometry const *const geo, GParam const *const param,
-                    double complex const *const polyvec,
-                    double complex *poly_poly) {
+// compute polyakov loop and plaquette on a single slice
+void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
+                                               Geometry const *const geo,
+                                               GParam const *const param) {
   long rsp;
-  double rep, imp;
-
-  imp = 0.0;
-  rep = 0.0;
 
 #ifdef OPENMP_MODE
-#pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) \
-    reduction(+ : imp)
+#pragma omp parallel for num_threads(NTHREADS) private(rsp)
 #endif
   for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
-    int j, t_tmp;
-    long r, rsp_tmp;
-    double complex p1, p2;
+    int i;
+    long r, rplaq;
+    GAUGE_GROUP matrix;
 
-    for (j = 1; j < STDIM; j++) {
-      int i;
+    r = sisp_and_t_to_si(geo, rsp, 0);
 
-      r = sisp_and_t_to_si(geo, rsp, 0);
-
-      for (i = 0; i < param->d_dist_flux; i++) {
-        r = nnp(geo, r, j);
-      }
-
-      si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
-
-      p1 = polyvec[rsp_tmp];
-      p2 = polyvec[rsp];
-
-      rep += creal(conj(p2) * p1);
-      imp += cimag(conj(p2) * p1);
+    one(&matrix);
+    for (i = 0; i < geo->d_size[0]; i++) {
+      times_equal(&matrix, &(GC->lattice[r][0]));
+      r = nnp(geo, r, 0);
     }
-  }
 
-  *poly_poly = (rep + I * imp) * geo->d_inv_space_vol / (STDIM - 1);
-}
+    GC->loc_poly_vec[rsp] = retr(&matrix) + I * imtr(&matrix);
 
-//
-void plaquette_tower_vec(Gauge_Conf const *const GC, Geometry const *const geo,
-                         double complex **plaq_tower_vec) {
-  long r, rsp;
+    rplaq = sisp_and_t_to_si(geo, rsp, 0);
 
-  for (rsp = 0; rsp < (geo->d_space_vol); rsp++) {
-    int i, t;
-
-    for (i = 1; i < STDIM; i++) {
-      for (t = 0; t < (geo->d_size[0]); t++) {
-        r = sisp_and_t_to_si(geo, rsp, t);
-        plaq_tower_vec[rsp][i] += plaquettep_complex(GC, geo, r, 0, i);
-      }
-      plaq_tower_vec[rsp][i] /= geo->d_size[0];
+    for (i = 0; i < param->d_dist_poly / 2;
+         i++) // polyakov loops are separated along direction 1
+    {
+      rplaq = nnp(geo, rplaq, 1);
     }
+    for (i = 0; i < param->d_trasv_dist;
+         i++) // the transverse direction is direction 2
+    {
+      rplaq = nnp(geo, rplaq, 2);
+    }
+
+    GC->loc_plaq[rsp] = plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
+                                           param->d_plaq_dir[1]);
   }
 }
-
-// compute the Polyakov plaquette  Polyakov correlator with
-// Polyakov loops at a distance d=2n+1, n positive integer and the plaquette in
-// the middle. The plaquette corresponds to the chromo-electric field in the
-// direction of the separation between the two Polyakov loops.
-// void poly_plaq_poly_corr(Geometry const *const geo, GParam const *const param,
-//                          double complex const *const polyvec,
-//                          double complex **plaq_tower_vec,
-//                          double complex *poly_plaq_poly_corr) {
-//   int dspl;
-//   long rsp;
-//   double rep, imp;
-
-//   for (dspl = -(int)param->d_dspl; dspl <= (int)param->d_dspl; dspl++) {
-//     rep = 0.0;
-//     imp = 0.0;
-// #ifdef OPENMP_MODE
-// #pragma omp parallel for num_threads(NTHREADS) private(rsp) reduction(+ : rep) \
-//     reduction(+ : imp)
-// #endif
-//     for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
-//       int j, t_tmp, t_plaq;
-//       long r, rsp_tmp, rsp_plaq;
-//       double complex p1, p2, plaq_tower;
-//       plaq_tower = 0.0;
-
-//       for (j = 1; j < STDIM; j++) {
-//         int i;
-
-//         r = sisp_and_t_to_si(geo, rsp, 0);
-
-//         for (i = 0; i < param->d_dist_flux; i++) {
-//           if (i == (int)param->d_dist_flux / 2) {
-//             // add measurement displacement
-//             si_to_sisp_and_t(&rsp_plaq, &t_plaq, geo, r);
-//             fprintf(stdout, "%d %ld %ld\n", i, rsp, rsp_plaq);
-//             plaq_tower = plaq_tower_vec[rsp_plaq][j];
-//           }
-//           r = nnp(geo, r, j);
-//         }
-//         si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
-
-//         p1 = polyvec[rsp_tmp];
-//         p2 = polyvec[rsp];
-
-//         rep += creal(conj(p2) * plaq_tower * p1);
-//         imp += cimag(conj(p2) * plaq_tower * p1);
-//       }
-//     }
-
-//     int offset;
-//     offset = dspl + param->d_dspl;
-
-//     *(poly_plaq_poly_corr + offset) =
-//         (rep + I * imp) * geo->d_inv_space_vol / (STDIM - 1);
-//   }
-// }
-*/
 
 // compute the local topological charge at point r
 // see readme for more details
@@ -1085,50 +1009,59 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 #endif
   }
 }
-/*
-// perform measurement of the flux tube profile  in the case of trace
-// deformation, it computes all the order parameters
-void perform_measures_profile_flux_tube_with_tracedef(
-    Gauge_Conf const *const GC, Geometry const *const geo,
-    GParam const *const param, FILE *datafilep, FILE *datafilePP,
-    FILE *datafilePUP, double complex *poly_vec,
-    double complex **plaq_tower_vec, double complex *poly_plaq_poly_vec) {
-  int i;
-  double plaqs, plaqt, polyre[NCOLOR / 2 + 1],
-      polyim[NCOLOR / 2 + 1]; // +1 just to avoid warning if NCOLOR=1
-  double complex poly_poly;
 
-  // measurement of <U>
-  plaquette(GC, geo, &plaqs, &plaqt);
-  polyakov_for_tracedef(GC, geo, polyre, polyim);
+// perform the computation of the string width with the
+// disconnected correlator for the theory with trace deformation
+void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
+                                              Geometry const *const geo,
+                                              GParam const *const param,
+                                              FILE *datafilep) {
+  long rsp;
+  double ris1r, ris1i, ris2r, ris2i, ris3r, ris3i;
 
-  fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
+  ris1r = 0.0;
+  ris1i = 0.0;
+  ris2r = 0.0;
+  ris2i = 0.0;
+  ris3r = 0.0;
+  ris3i = 0.0;
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(rsp)
+#endif
+  for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
+    int t_tmp;
+    long r, rsp_tmp;
+    double complex p1, p2, pp;
+
+    int i;
+
+    r = sisp_and_t_to_si(geo, rsp, 0);
+
+    for (i = 0; i < param->d_dist_poly; i++) {
+      r = nnp(geo, r, 1); // polyakov loops are separated along dir 1
+    }
+
+    si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
+
+    p1 = GC->loc_poly_vec[rsp_tmp];
+    p2 = GC->loc_poly_vec[rsp];
+    pp = GC->loc_plaq[rsp];
+
+    ris1r += creal(conj(p2) * p1);
+    ris1i += cimag(conj(p2) * p1);
+    ris2r += creal(conj(p2) * pp * p1);
+    ris2i += cimag(conj(p2) * pp * p1);
+    ris3r += creal(pp);
+    ris3i += cimag(pp);
+  }
+
+  fprintf(datafilep, "%.12g %.12g %.12g %.12g %.12g %.12g ", ris1r, ris1i, ris2r, ris2i,
+          ris3r, ris3i);
 
   fprintf(datafilep, "\n");
   fflush(datafilep);
-
-  // measurement <P\dag P>
-  polyvec(GC, geo, poly_vec);
-  poly_poly_corr(geo, param, poly_vec, &poly_poly);
-
-  fprintf(datafilePP, "%.12g %.12g ", creal(poly_poly), cimag(poly_poly));
-  fprintf(datafilePP, "\n");
-
-  fflush(datafilePP);
-
-  // measurement of <P\dag U P>
-  plaquette_tower_vec(GC, geo, plaq_tower_vec);
-  poly_plaq_poly_corr(geo, param, poly_vec, plaq_tower_vec, poly_plaq_poly_vec);
-
-  for (i = 0; i < param->d_dspl * 2 + 1; i++) {
-    fprintf(datafilePUP, "%.12g %.12g ", creal(poly_plaq_poly_vec[i]),
-            cimag(poly_plaq_poly_vec[i]));
-  }
-  fprintf(datafilePUP, "\n");
-
-  fflush(datafilePUP);
 }
-*/
 
 // compute the average value of \sum_{flavours} Re(H_x U_{x,mu} H_{x+mu})
 void higgs_interaction(Gauge_Conf const *const GC, Geometry const *const geo,
