@@ -567,7 +567,7 @@ void polyakov_corr(Geometry const *const geo, GParam const *const param,
   }
 }
 
-// compute polyakov loop and plaquette on a single slice
+// compute polyakov loop and plaquette locally at rsp
 void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
                                           Geometry const *const geo,
                                           GParam const *const param) {
