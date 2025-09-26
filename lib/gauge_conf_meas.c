@@ -569,8 +569,8 @@ void polyakov_corr(Geometry const *const geo, GParam const *const param,
 
 // compute polyakov loop and plaquette on a single slice
 void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
-                                               Geometry const *const geo,
-                                               GParam const *const param) {
+                                          Geometry const *const geo,
+                                          GParam const *const param) {
   long rsp;
 
 #ifdef OPENMP_MODE
@@ -1013,9 +1013,9 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 // perform the computation of the string width with the
 // disconnected correlator for the theory with trace deformation
 void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
-                                              Geometry const *const geo,
-                                              GParam const *const param,
-                                              FILE *datafilep) {
+                                                      Geometry const *const geo,
+                                                      GParam const *const param,
+                                                      FILE *datafilep) {
   long rsp;
   double ris1r, ris1i, ris2r, ris2i, ris3r, ris3i;
 
@@ -1025,6 +1025,8 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
   ris2i = 0.0;
   ris3r = 0.0;
   ris3i = 0.0;
+
+  compute_local_poly_and_plaq_tracedef(GC, geo, param);
 
 #ifdef OPENMP_MODE
 #pragma omp parallel for num_threads(NTHREADS) private(rsp)
@@ -1056,8 +1058,15 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
     ris3i += cimag(pp);
   }
 
-  fprintf(datafilep, "%.12g %.12g %.12g %.12g %.12g %.12g ", ris1r, ris1i, ris2r, ris2i,
-          ris3r, ris3i);
+  ris1r *= geo->d_inv_space_vol;
+  ris1i *= geo->d_inv_space_vol;
+  ris2r *= geo->d_inv_space_vol;
+  ris2i *= geo->d_inv_space_vol;
+  ris3r *= geo->d_inv_space_vol;
+  ris3i *= geo->d_inv_space_vol;
+
+  fprintf(datafilep, "%.12g %.12g %.12g %.12g %.12g %.12g ", ris1r, ris1i,
+          ris2r, ris2i, ris3r, ris3i);
 
   fprintf(datafilep, "\n");
   fflush(datafilep);
