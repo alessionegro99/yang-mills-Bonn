@@ -604,8 +604,15 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
       rplaq = nnp(geo, rplaq, 2);
     }
 
-    GC->loc_plaq[rsp] = plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
-                                           param->d_plaq_dir[1]);
+    one(&matrix);
+
+    for (i = 0; i < geo->d_size[0]; i++) {
+      times_equal_complex(&matrix,
+                  plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
+                                     param->d_plaq_dir[1]));
+      rplaq = nnp(geo, rplaq, 0);
+    }
+    GC->loc_plaq[rsp] = retr(&matrix) + I * imtr(&matrix);
   }
 }
 
