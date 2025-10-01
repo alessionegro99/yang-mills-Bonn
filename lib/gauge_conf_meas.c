@@ -579,6 +579,7 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
   for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
     int i;
     long r, rplaq;
+    double complex aux;
     GAUGE_GROUP matrix;
 
     r = sisp_and_t_to_si(geo, rsp, 0);
@@ -604,14 +605,13 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
       rplaq = nnp(geo, rplaq, 2);
     }
 
-    one(&matrix);
-
+    aux = 0.0 + I * 0.0;
     for (i = 0; i < geo->d_size[0]; i++) {
-      times_equal_complex(&matrix,
-                  plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
-                                     param->d_plaq_dir[1]));
+      aux += plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
+                                param->d_plaq_dir[1]);
       rplaq = nnp(geo, rplaq, 0);
     }
+    aux /= (double complex)(geo->d_size[0] + I * 0.0);
     GC->loc_plaq[rsp] = retr(&matrix) + I * imtr(&matrix);
   }
 }
