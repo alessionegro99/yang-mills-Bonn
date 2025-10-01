@@ -26,9 +26,7 @@ typedef struct Gauge_Conf {
                            // auxilliary vector to be used in the multilevel
 
   // for the disconnected correlator for string width
-  TensProd **ml_polyplaq;   // [NLEVELS] [only slice 0] [space_vol]
-  double complex *loc_plaq; // [only slice 0] [space_vol] auxilliary vector to
-                            // be used in the multilevel
+  TensProd **ml_polyplaq; // [NLEVELS] [only slice 0] [space_vol]
 
   // for the connected correlator for string width
   TensProd **ml_polyplaqconn; // [NLEVELS] [only slice 0] [space_vol]
@@ -36,6 +34,7 @@ typedef struct Gauge_Conf {
                               // be used in the multilevel
 
   // for the disconnected correlator for string width with trace deformation
+  double complex *loc_plaq;    // [space_vol]
   double complex *loc_poly_vec; // [space_vol]
 
   // for higgs field & co
@@ -197,9 +196,9 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
                                           Geometry const *const geo,
                                           GParam const *const param);
 void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
-                                              Geometry const *const geo,
-                                              GParam const *const param,
-                                              FILE *datafilep);
+                                                      Geometry const *const geo,
+                                                      GParam const *const param,
+                                                      FILE *datafilep);
 
 void higgs_interaction(Gauge_Conf const *const GC, Geometry const *const geo,
                        double *he);

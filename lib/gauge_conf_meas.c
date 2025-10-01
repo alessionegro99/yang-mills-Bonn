@@ -578,10 +578,11 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
 #endif
   for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
     int i;
-    long r, rplaq;
+    long r;
     double complex aux;
     GAUGE_GROUP matrix;
 
+    // fill loc_poly_vec [spacevol]
     r = sisp_and_t_to_si(geo, rsp, 0);
 
     one(&matrix);
@@ -592,26 +593,16 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
 
     GC->loc_poly_vec[rsp] = retr(&matrix) + I * imtr(&matrix);
 
-    rplaq = sisp_and_t_to_si(geo, rsp, 0);
-
-    for (i = 0; i < param->d_dist_poly / 2;
-         i++) // polyakov loops are separated along direction 1
-    {
-      rplaq = nnp(geo, rplaq, 1);
-    }
-    for (i = 0; i < param->d_trasv_dist;
-         i++) // the transverse direction is direction 2
-    {
-      rplaq = nnp(geo, rplaq, 2);
-    }
+    // fill loc_plaq [spacevol]
+    r = sisp_and_t_to_si(geo, rsp, 0);
 
     aux = 0.0 + I * 0.0;
     for (i = 0; i < geo->d_size[0]; i++) {
-      aux += plaquettep_complex(GC, geo, rplaq, param->d_plaq_dir[0],
+      aux += plaquettep_complex(GC, geo, r, param->d_plaq_dir[0],
                                 param->d_plaq_dir[1]);
-      rplaq = nnp(geo, rplaq, 0);
+      r = nnp(geo, r, 0);
     }
-    GC->loc_plaq[rsp] = aux/(double complex)(geo->d_size[0] + I * 0.0);
+    GC->loc_plaq[rsp] = aux / (double complex)(geo->d_size[0] + I * 0.0);
   }
 }
 
@@ -1054,6 +1045,7 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
 
     p1 = GC->loc_poly_vec[rsp_tmp];
     p2 = GC->loc_poly_vec[rsp];
+
     pp = GC->loc_plaq[rsp];
 
     ris1r += creal(conj(p2) * p1);
