@@ -611,8 +611,7 @@ void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
                                 param->d_plaq_dir[1]);
       rplaq = nnp(geo, rplaq, 0);
     }
-    aux /= (double complex)(geo->d_size[0] + I * 0.0);
-    GC->loc_plaq[rsp] = retr(&matrix) + I * imtr(&matrix);
+    GC->loc_plaq[rsp] = aux/(double complex)(geo->d_size[0] + I * 0.0);
   }
 }
 
