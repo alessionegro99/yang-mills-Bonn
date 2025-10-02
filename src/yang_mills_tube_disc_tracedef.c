@@ -78,7 +78,7 @@ void real_main(char *in_file) {
     acc += acc_local;
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      // rePP imPP reU imU ...
+      // reU imU rePP imPP rePUP(y=-d_trasv_dist) rePUP(y=-d_trasv_dist) ... rePUP(y=0) rePUP(y=0) ... rePUP(y=d_trasv_dist) rePUP(y=d_trasv_dist) 
       perform_measures_profile_flux_tube_with_tracedef(&GC, &geo, &param,
                                                        datafilep);
     }
