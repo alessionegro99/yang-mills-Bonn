@@ -1013,15 +1013,25 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
                                                       Geometry const *const geo,
                                                       GParam const *const param,
                                                       FILE *datafilep) {
+  int i, err;
   long rsp;
-  double ris1r, ris1i, ris2r, ris2i, ris3r, ris3i;
+  double complex plaq, polypoly, *polyplaqpoly;
 
-  ris1r = 0.0;
-  ris1i = 0.0;
-  ris2r = 0.0;
-  ris2i = 0.0;
-  ris3r = 0.0;
-  ris3i = 0.0;
+  plaq = 0.0 + I * 0.0;
+  polypoly = 0.0 + I * 0.0;
+
+  err = posix_memalign((void **)&(polyplaqpoly), (size_t)DOUBLE_ALIGN,
+                       (size_t)(2 * param->d_trasv_dist + 1) *
+                           sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating polyplaqpoly (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  for (i = 0; i < 2 * param->d_trasv_dist + 1; i++) {
+    polyplaqpoly[i] = 0.0 + I * 0.0;
+  }
 
   compute_local_poly_and_plaq_tracedef(GC, geo, param);
 
@@ -1030,41 +1040,67 @@ void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,
 #endif
   for (rsp = 0; rsp < geo->d_space_vol; rsp++) {
     int t_tmp;
-    long r, rsp_tmp;
-    double complex p1, p2, pp;
+    long r, rsp_tmp, rhalf, raux;
+    double complex aux;
 
-    int i;
+    rhalf = 0;
+
+    // plaquette
+    plaq += GC->loc_plaq[rsp];
 
     r = sisp_and_t_to_si(geo, rsp, 0);
 
     for (i = 0; i < param->d_dist_poly; i++) {
+
+      if (i == param->d_dist_poly / 2) {
+        rhalf = r;
+      }
+
       r = nnp(geo, r, 1); // polyakov loops are separated along dir 1
     }
 
     si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, r);
 
-    p1 = GC->loc_poly_vec[rsp_tmp];
-    p2 = GC->loc_poly_vec[rsp];
+    // 2 point Polyakov Polyakov function
+    aux = conj(GC->loc_poly_vec[rsp]) * GC->loc_poly_vec[rsp_tmp];
+    polypoly += aux;
 
-    pp = GC->loc_plaq[rsp];
+    // 3 point Polyakov plaq Polyakov function
+    // the plaquette in the Polyakov Polyakov plane is in
+    // polyplaqpoly[d_trasv_dist]
+    si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, rhalf);
+    polyplaqpoly[param->d_trasv_dist] += aux * GC->loc_plaq[rsp_tmp];
 
-    ris1r += creal(conj(p2) * p1);
-    ris1i += cimag(conj(p2) * p1);
-    ris2r += creal(conj(p2) * pp * p1);
-    ris2i += cimag(conj(p2) * pp * p1);
-    ris3r += creal(pp);
-    ris3i += cimag(pp);
+    raux = rhalf;
+    for (i = 1; i <= param->d_trasv_dist; i++) {
+      raux = nnp(geo, raux, 2);
+      // transverse separation along dir 2 positive
+      // polyplaqpoly[d_trasv_dist + 1] ... polyplaqpoly[2*d_trasv_dist]
+      si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, raux);
+      polyplaqpoly[param->d_trasv_dist + i] += aux * GC->loc_plaq[rsp_tmp];
+    }
+
+    raux = rhalf;
+    for (i = 1; i <= param->d_trasv_dist; i++) {
+      raux = nnm(geo, raux, 2);
+      // transverse separation along dir 2 positive
+      // polyplaqpoly[d_trasv_dist - 1] ... polyplaqpoly[0]
+      si_to_sisp_and_t(&rsp_tmp, &t_tmp, geo, raux);
+      polyplaqpoly[param->d_trasv_dist - i] += aux * GC->loc_plaq[rsp_tmp];
+    }
   }
 
-  ris1r *= geo->d_inv_space_vol;
-  ris1i *= geo->d_inv_space_vol;
-  ris2r *= geo->d_inv_space_vol;
-  ris2i *= geo->d_inv_space_vol;
-  ris3r *= geo->d_inv_space_vol;
-  ris3i *= geo->d_inv_space_vol;
+  plaq *= geo->d_inv_space_vol;
+  polypoly *= geo->d_inv_space_vol;
 
-  fprintf(datafilep, "%.12g %.12g %.12g %.12g %.12g %.12g ", ris1r, ris1i,
-          ris2r, ris2i, ris3r, ris3i);
+  fprintf(datafilep, "%.12g %.12g %.12g %.12g ", creal(plaq), cimag(plaq),
+          creal(polypoly), cimag(polypoly));
+
+  for (i = 0; i <= 2 * param->d_trasv_dist; i++) {
+    polyplaqpoly[i] *= geo->d_inv_space_vol;
+    fprintf(datafilep, "%.12g %.12g ", creal(polyplaqpoly[i]),
+            cimag(polyplaqpoly[i]));
+  }
 
   fprintf(datafilep, "\n");
   fflush(datafilep);
@@ -1390,8 +1426,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
 #endif
     for (r = 0; r < geo->d_volume / 2; r++) {
       GAUGE_GROUP G_mag, help,
-          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in the
-                              // computation of X(n)
+          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in
+                              // the computation of X(n)
 
       // initialize X_links[2*STDIM] with the 2*STDIM links surrounding the
       // point r links 0 to (STDIM-1) are forward, while links STDIM to
@@ -1417,8 +1453,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
 #endif
     for (r = geo->d_volume / 2; r < geo->d_volume; r++) {
       GAUGE_GROUP G_mag, help,
-          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in the
-                              // computation of X(n)
+          X_links[2 * STDIM]; // X_links contains the 2*STDIM links used in
+                              // the computation of X(n)
 
       // initialize X_links[2*STDIM] with the 2*STDIM links surrounding the
       // point r links 0 to (STDIM-1) are forward, while links STDIM to
@@ -1447,8 +1483,8 @@ void max_abelian_gauge_fix(Gauge_Conf *GC, Geometry const *const geo) {
     reduction(+ : nondiagaux)
 #endif
     for (r = 0; r < geo->d_volume; r++) {
-      GAUGE_GROUP X_links[2 * STDIM]; // X_links contains the 2*STDIM links used
-                                      // in the computation of X(n)
+      GAUGE_GROUP X_links[2 * STDIM]; // X_links contains the 2*STDIM links
+                                      // used in the computation of X(n)
       double counter;
 
       for (dir = 0; dir < STDIM; dir++) {
@@ -1681,8 +1717,8 @@ void monopoles_obs(Gauge_Conf *GC, Geometry const *const geo,
     // start following monopole charge in forward direction. Maximum lattice
     // charge is +2 so we try twice
     for (mono_charge = 0; mono_charge < 2; mono_charge++) {
-      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are associated
-      // to uflag[r][dir]
+      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are
+      // associated to uflag[r][dir]
       if (n_mu > GC->uflag[r_tback][0]) {
         GC->uflag[r_tback][0] += 1;
 
@@ -1717,8 +1753,8 @@ void monopoles_obs(Gauge_Conf *GC, Geometry const *const geo,
     // start following monopole charge in backward direction. Maximum lattice
     // charge is +2 so we try twice
     for (mono_charge = 0; mono_charge < 2; mono_charge++) {
-      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are associated
-      // to uflag[r][dir]
+      // nonzero DeGrand_current(GC, geo, nnp(geo, r, dir), dir ) are
+      // associated to uflag[r][dir]
       if (n_mu < GC->uflag[r_tbackback][0]) {
         GC->uflag[r_tbackback][0] -= 1;
 
