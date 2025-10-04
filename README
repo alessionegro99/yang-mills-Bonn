@@ -26,15 +26,15 @@ form
 The update is performed by means of heatbath and overrelaxation updates (and in
 some case also Metropolis updates) implemented a la Cabibbo-Marinari.
 
-In yang_mills_higgs the action is 
+In yang_mills_higgs the action is
 
--beta*(1/N)\sum_{plaquettes} Re(Tr(paquette)) 
+-beta*(1/N)\sum_{plaquettes} Re(Tr(paquette))
 -N_higgs*higgs_beta\sum_{r, mu}\sum_{i=1}^{N_higgs} Re([H_r^{(i)}]^{\dag} U_{r, mu} H_{r+mu}^{(i)} )
 
 where the sum on mu is just on positive orientations and Higgs fields are
 normalized according to
 
-\sum_{i=1}^{N_higgs} \|H_r^{(i)}\|^2 = 1 
+\sum_{i=1}^{N_higgs} \|H_r^{(i)}\|^2 = 1
 
 for every site r.
 
@@ -84,7 +84,7 @@ order "time space1 space2 ..."
 
 when computing Polyakov loop correlators, Polyakov loops are separated along
 direction 1 and, when computing flux tube profiles, the transverse direction is
-direction 2 
+direction 2
 
 level 0 of the multilevel is the one corresponding to the largest
 timeslice.
@@ -96,22 +96,22 @@ timeslice.
 Topology for the general group: in the continuum the topological charge is
 defined in 4 space-time dimensions by
 
-Q=\frac{1}{64 \pi^2} \int \epsilon_{\mu\nu\rho\sigma} 
+Q=\frac{1}{64 \pi^2} \int \epsilon_{\mu\nu\rho\sigma}
    F_{\mu\nu}^a F_{\rho\sigma}^a d^x
 
 with the normalization Tr(T_iT_j)=K \delta_{ij} such that the longest root of
 the representation is normalized to 1.
-[see C. W. Bernard, N. H. Christ, A. H. Guth, E. J. Weinberg 
+[see C. W. Bernard, N. H. Christ, A. H. Guth, E. J. Weinberg
  Phys. Rev. D 16, 2967 (1977) ]
 
 For SU(N) this base is that of the generalized Gell-Mann matrices divided by
-two and in this representation Tr(T^aT^b)=(1/2)\delta^{ab}, so that 
+two and in this representation Tr(T^aT^b)=(1/2)\delta^{ab}, so that
 
 F_{\mu\nu}^aF_{\rho\sigma}^a=2Tr(F_{\mu\nu}F_{\rho\sigma})
 
-and thus 
+and thus
 
-Q=\frac{1}{32 \pi^2} \int \epsilon_{\mu\nu\rho\sigma} 
+Q=\frac{1}{32 \pi^2} \int \epsilon_{\mu\nu\rho\sigma}
 Tr(F_{\mu\nu} F_{\rho\sigma}) d^x
 
 The discretization used on the lattice is obtained by using the clover form of
@@ -121,11 +121,11 @@ Q_{\mu\nu}  ~ 4 + 4 i a^2 F_{\mu\nu}
 
 and thus
 
-F_{\mu\nu} = \frac{1}{8i}( Q_{\mu\nu} - Q_{\mu\nu}^{dag} )  
+F_{\mu\nu} = \frac{1}{8i}( Q_{\mu\nu} - Q_{\mu\nu}^{dag} )
 
 By using this expression we get
 
-Tr(F_{\mu\nu}F_{\rho\sigma}) = 
+Tr(F_{\mu\nu}F_{\rho\sigma}) =
           =-\frac{1}{2^5} ReTr(Q_{\mu\nu}[Q_{\rho\sigma}-Q_{\rho\sigma}^{dag}])
 
 We now note that of the 24 terms
@@ -133,22 +133,30 @@ We now note that of the 24 terms
 
 2: single exchange on the first term   F_{\mu\nu}F_{\rho\sigma} ->
                                                F_{\nu\mu}F_{\rho\sigma}
-2: single exchange on the second term  F_{\mu\nu}F_{\rho\sigma} -> 
+2: single exchange on the second term  F_{\mu\nu}F_{\rho\sigma} ->
                                                F_{\mu\nu}F_{\sigma\rho}
-2: exchage                             F_{\mu\nu}F_{\rho\sigma} -> 
-                                               F_{\rho\sigma}F_{\mu\nu} 
+2: exchage                             F_{\mu\nu}F_{\rho\sigma} ->
+                                               F_{\rho\sigma}F_{\mu\nu}
 3: remaining permutations of indices: e.g 0123, 0213, 0312
 
-thus 
+thus
 
 \frac{1}{32} \epsilon_{\mu\nu\rho\sigma}Tr(F_{\mu\nu}F_{\rho\sigma})=
 
  =-\frac{1}{32} * \frac{1}{2^5} * 2^3 * [ sum on independent permutations
-              of \epsilon_{\mu\nu\rho\sigma} 
-              ReTr(Q_{\mu\nu}[Q_{\rho\sigma}-Q_{\rho\sigma}^{dag}]) ]
-  
- =-\frac{1}{128} [ sum on independent permutations
-              of \epsilon_{\mu\nu\rho\sigma} 
+              of \epsilon_{\mu\nu\rho\sigma}
               ReTr(Q_{\mu\nu}[Q_{\rho\sigma}-Q_{\rho\sigma}^{dag}]) ]
 
-This is the expression used in the code. 
+ =-\frac{1}{128} [ sum on independent permutations
+              of \epsilon_{\mu\nu\rho\sigma}
+              ReTr(Q_{\mu\nu}[Q_{\rho\sigma}-Q_{\rho\sigma}^{dag}]) ]
+
+This is the expression used in the code.
+
+** CONFIGURING ON INTEL MACHINES
+
+./configure CC=icc CFLAGS='-O3 -axCORE-AVX512 -mtune=skylake -ip -ipo' LIBS="-ldl -lz -lc"
+
+** OPENMP
+
+./configure -h enable open MP NThreads = 2
