@@ -34,7 +34,7 @@ typedef struct Gauge_Conf {
                               // be used in the multilevel
 
   // for the disconnected correlator for string width with trace deformation
-  double complex *loc_plaq;    // [space_vol]
+  double complex *loc_plaq;     // [space_vol]
   double complex *loc_poly_vec; // [space_vol]
 
   // for higgs field & co
@@ -158,6 +158,10 @@ void plaquette(Gauge_Conf const *const GC, Geometry const *const geo,
                double *plaqs, double *plaqt);
 void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
                         double *energy);
+double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
+               int j, int wi, int wj, long r);
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
+               int ws);
 void polyakov(Gauge_Conf const *const GC, Geometry const *const geo,
               double *repoly, double *impoly);
 void polyvec(Gauge_Conf const *const GC, Geometry const *const geo,
@@ -184,6 +188,10 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
                                Geometry const *const geo,
                                GParam const *const param, FILE *datafilep,
                                FILE *monofilep);
+
+void perform_measures_localobs_with_gaugebreaking(Gauge_Conf const *const GC,
+                                                  Geometry const *const geo,
+                                                  FILE *datafilep);
 
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,

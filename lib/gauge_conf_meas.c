@@ -274,6 +274,85 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
   *energy = ris * geo->d_inv_vol;
 }
 
+// rectangular Wilson loop of size (wi,wj) in direction (i,j) at point r
+double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
+               int j, int wi, int wj, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (j >= STDIM || i >= STDIM) {
+    fprintf(stderr, "i or j too large: (i=%d || j=%d) >= %d (%s, %d)\n", i, j,
+            STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  //
+  //       ^ i
+  //       |       r2
+  //    r3 +---<---+
+  //       |       |
+  //       V       ^ wi
+  //       |       |
+  //       +--->---+---> j
+  //       r   wj  r1
+  //
+
+  one(&matrix);
+  // now we are in r
+  for (aux = 0; aux < wj; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+  }
+  // now we are in r1
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  // now we are in r2
+  for (aux = 0; aux < wj; aux++) {
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  // now we are in r3
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+  // now we are in r
+
+  return retr(&matrix);
+}
+
+// averaged temporal rectangular Wilson loop of size (wt,ws)
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
+               int ws) {
+  long r;
+  double ris;
+
+  ris = 0;
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    int j;
+    for (j = 1; j < STDIM; j++) {
+      ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
+    }
+  }
+
+  ris *= geo->d_inv_vol;
+  ris /= (STDIM - 1);
+
+  return ris;
+}
+
 // compute the mean Polyakov loop (the trace of)
 void polyakov(Gauge_Conf const *const GC, Geometry const *const geo,
               double *repoly, double *impoly) {
@@ -831,6 +910,28 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 #else
     (void)monofilep;
 #endif
+  }
+}
+
+void perform_measures_localobs_with_gaugebreaking(Gauge_Conf const *const GC,
+                                                  Geometry const *const geo,
+                                                  FILE *datafilep) {
+  int ws, wt, max_wt, max_ws;
+  double plaqs, plaqt;
+
+  plaquette(GC, geo, &plaqs, &plaqt);
+
+  fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
+
+  // getting max_wt and max_ws
+  max_wt = (int)geo->d_size[0] / 2;
+  max_ws = (int)geo->d_size[1] / 2;
+
+  // planar temporal Wilson loops
+  for (ws = 1; ws <= max_ws; ws++) {
+    for (wt = 1; wt <= max_wt; wt++) {
+      fprintf(datafilep, "%.12g ", Wilsont(GC, geo, wt, ws));
+    }
   }
 }
 

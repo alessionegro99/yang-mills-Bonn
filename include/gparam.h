@@ -1,10 +1,10 @@
 #ifndef GPARAM_H
 #define GPARAM_H
 
-#include<stdio.h>
-#include<time.h>
+#include <stdio.h>
+#include <time.h>
 
-#include"macro.h"
+#include "macro.h"
 
 typedef struct GParam {
   // lattice dimensions
@@ -63,33 +63,48 @@ typedef struct GParam {
 
 } GParam;
 
-
 void remove_white_line_and_comments(FILE *input);
 void readinput(char *in_file, GParam *param);
 
-void init_data_file(FILE **dataf, GParam const * const param);
-void init_mon_file(FILE **monof, GParam const * const param);
+void init_data_file(FILE **dataf, GParam const *const param);
+void init_mon_file(FILE **monof, GParam const *const param);
 
-void print_parameters_local(GParam const * const param, time_t time_start, time_t time_end);
+void print_parameters_local(GParam const *const param, time_t time_start,
+                            time_t time_end);
+void print_parameters_gaugebreaking(GParam const *const param,
+                                    time_t time_start, time_t time_end);
 
-void print_parameters_polycorr(GParam * param, time_t time_start, time_t time_end);
-void print_parameters_polycorr_higgs(GParam * param, time_t time_start, time_t time_end, double acc);
-void print_parameters_polycorr_long(GParam * param, time_t time_start, time_t time_end);
-void print_parameters_polycorr_higgs_long(GParam * param, time_t time_start, time_t time_end, double acc);
+void print_parameters_polycorr(GParam *param, time_t time_start,
+                               time_t time_end);
+void print_parameters_polycorr_higgs(GParam *param, time_t time_start,
+                                     time_t time_end, double acc);
+void print_parameters_polycorr_long(GParam *param, time_t time_start,
+                                    time_t time_end);
+void print_parameters_polycorr_higgs_long(GParam *param, time_t time_start,
+                                          time_t time_end, double acc);
 
-void print_parameters_spectrum(GParam const * const param, time_t time_start, time_t time_end);
+void print_parameters_spectrum(GParam const *const param, time_t time_start,
+                               time_t time_end);
 
-void print_parameters_t0(GParam * param, time_t time_start, time_t time_end);
+void print_parameters_t0(GParam *param, time_t time_start, time_t time_end);
 
-void print_parameters_tube_disc_tracedef(GParam const * const param, time_t time_start, time_t time_end, double acc);
-void print_parameters_tracedef(GParam const * const param, time_t time_start, time_t time_end, double acc);
+void print_parameters_tube_disc_tracedef(GParam const *const param,
+                                         time_t time_start, time_t time_end,
+                                         double acc);
+void print_parameters_tracedef(GParam const *const param, time_t time_start,
+                               time_t time_end, double acc);
 
-void print_parameters_tube_disc(GParam * param, time_t time_start, time_t time_end);
-void print_parameters_tube_disc_long(GParam * param, time_t time_start, time_t time_end);
+void print_parameters_tube_disc(GParam *param, time_t time_start,
+                                time_t time_end);
+void print_parameters_tube_disc_long(GParam *param, time_t time_start,
+                                     time_t time_end);
 
-void print_parameters_tube_conn(GParam * param, time_t time_start, time_t time_end);
-void print_parameters_tube_conn_long(GParam * param, time_t time_start, time_t time_end);
+void print_parameters_tube_conn(GParam *param, time_t time_start,
+                                time_t time_end);
+void print_parameters_tube_conn_long(GParam *param, time_t time_start,
+                                     time_t time_end);
 
-void print_parameters_higgs(GParam const * const param, time_t time_start, time_t time_end, double acc);
+void print_parameters_higgs(GParam const *const param, time_t time_start,
+                            time_t time_end, double acc);
 
 #endif
