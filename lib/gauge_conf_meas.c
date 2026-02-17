@@ -933,6 +933,10 @@ void perform_measures_localobs_with_gaugebreaking(Gauge_Conf const *const GC,
       fprintf(datafilep, "%.12g ", Wilsont(GC, geo, wt, ws));
     }
   }
+
+  fprintf(datafilep, "\n");
+
+  fflush(datafilep);
 }
 
 // perform measurement of local observables in the case of trace deformation, it
