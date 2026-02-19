@@ -107,4 +107,8 @@ void print_parameters_tube_conn_long(GParam *param, time_t time_start,
 void print_parameters_higgs(GParam const *const param, time_t time_start,
                             time_t time_end, double acc);
 
+void print_parameters_correlated_sampling(GParam const *const param,
+                                          time_t time_start, time_t time_end,
+                                          double acc);
+
 #endif

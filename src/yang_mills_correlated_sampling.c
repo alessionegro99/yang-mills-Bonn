@@ -1,5 +1,5 @@
-#ifndef YM_GAUGEBREAKING_C
-#define YM_GAUGEBREAKING_C
+#ifndef YM_CORR_SAMPLING_C
+#define YM_CORR_SAMPLING_C
 
 #include "../include/macro.h"
 
@@ -25,7 +25,7 @@ void real_main(char *in_file) {
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
   int count;
-  FILE *datafilep;
+  FILE *datafilep, *monofilep;
   time_t time1, time2;
 
 // to disable nested parallelism
@@ -42,6 +42,11 @@ void real_main(char *in_file) {
   // open data_file
   init_data_file(&datafilep, &param);
 
+  // open mon_file
+  if (param.d_mon_meas == 1) {
+    init_mon_file(&monofilep, &param);
+  }
+
   // initialize geometry
   init_geometry(&geo, param.d_sizeg);
 
@@ -55,7 +60,7 @@ void real_main(char *in_file) {
     update(&GC, &geo, &param);
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_localobs_with_gaugebreaking(&GC, &geo, datafilep);
+      perform_measures_localobs(&GC, &geo, &param, datafilep, monofilep);
     }
 
     // save configuration for backup
@@ -85,13 +90,18 @@ void real_main(char *in_file) {
   // close data file
   fclose(datafilep);
 
+  // close mon file
+  if (param.d_mon_meas == 1) {
+    fclose(monofilep);
+  }
+
   // save configuration
   if (param.d_saveconf_back_every != 0) {
     write_conf_on_file(&GC, &geo, &param);
   }
 
   // print simulation details
-  print_parameters_gaugebreaking(&param, time1, time2);
+  print_parameters_correlated_sampling(&param, time1, time2, acc);
 
   // free gauge configuration
   free_gauge_conf(&GC, &geo);
@@ -127,9 +137,6 @@ void print_template_input(void) {
     fprintf(fp, "saveconf_analysis_every 5  # if 0 does not save, else save "
                 "configurations for analysis every ... updates\n");
     fprintf(fp, "\n");
-    fprintf(fp, "coolsteps  3     # number of cooling steps to be used\n");
-    fprintf(fp,
-            "coolrepeat 5     # number of times 'coolsteps' are repeated\n");
     fprintf(fp, "\n");
     fprintf(fp, "#output files\n");
     fprintf(fp, "conf_file  conf.dat\n");
