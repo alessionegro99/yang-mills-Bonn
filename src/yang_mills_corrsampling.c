@@ -1,5 +1,5 @@
-#ifndef YM_LOCAL_C
-#define YM_LOCAL_C
+#ifndef YM_CORRSAMPLING_C
+#define YM_CORRSAMPLING_C
 
 #include "../include/macro.h"
 
@@ -25,9 +25,9 @@ void real_main(char *in_file) {
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
   int count;
-  FILE *datafilep, *monofilep;
+  double acc, acc_local;
+  FILE *datafilep;
   time_t time1, time2;
-
 // to disable nested parallelism
 #ifdef OPENMP_MODE
   omp_set_nested(0);
@@ -42,25 +42,37 @@ void real_main(char *in_file) {
   // open data_file
   init_data_file(&datafilep, &param);
 
-  // open mon_file
-  if (param.d_mon_meas == 1) {
-    init_mon_file(&monofilep, &param);
-  }
-
   // initialize geometry
   init_geometry(&geo, param.d_sizeg);
 
   // initialize gauge configuration
   init_gauge_conf(&GC, &geo, &param);
 
+  // acceptance of the metropolis update
+  acc = 0.0;
+
   // montecarlo
   time(&time1);
   // count starts from 1 to avoid problems using %
   for (count = 1; count < param.d_sample + 1; count++) {
-    update(&GC, &geo, &param);
+    update_corrsampling(&GC, &geo, &param, &acc_local);
+
+    if (count > param.d_thermal) {
+      acc += acc_local;
+    }
+
+    if (count < param.d_thermal) {
+      if (acc_local > 0.33) {
+        if (param.d_epsilon_metro < 2.0) {
+          param.d_epsilon_metro *= 1.1;
+        }
+      } else {
+        param.d_epsilon_metro *= 0.9;
+      }
+    }
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_localobs(&GC, &geo, &param, datafilep, monofilep);
+      perform_measures_localobs_corrsampling(&GC, &geo, datafilep);
     }
 
     // save configuration for backup
@@ -87,13 +99,10 @@ void real_main(char *in_file) {
   time(&time2);
   // montecarlo end
 
+  acc /= (double)(param.d_sample - param.d_thermal);
+
   // close data file
   fclose(datafilep);
-
-  // close mon file
-  if (param.d_mon_meas == 1) {
-    fclose(monofilep);
-  }
 
   // save configuration
   if (param.d_saveconf_back_every != 0) {
@@ -101,7 +110,7 @@ void real_main(char *in_file) {
   }
 
   // print simulation details
-  print_parameters_local(&param, time1, time2);
+  print_parameters_corrsampling(&param, time1, time2, acc);
 
   // free gauge configuration
   free_gauge_conf(&GC, &geo);
@@ -123,13 +132,11 @@ void print_template_input(void) {
     fprintf(fp, "size 4 4 4 4\n");
     fprintf(fp, "\n");
     fprintf(fp, "beta 5.705\n");
-    fprintf(fp, "theta 1.5\n");
     fprintf(fp, "\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
     fprintf(fp, "overrelax 5\n");
     fprintf(fp, "measevery 1\n");
-    fprintf(fp, "monomeas  0  # 1=monopoles measures are performed\n");
     fprintf(fp, "\n");
     fprintf(fp, "start                   0  # 0=ordered  1=random  2=from "
                 "saved configuration\n");
@@ -138,14 +145,12 @@ void print_template_input(void) {
     fprintf(fp, "saveconf_analysis_every 5  # if 0 does not save, else save "
                 "configurations for analysis every ... updates\n");
     fprintf(fp, "\n");
-    fprintf(fp, "coolsteps  3     # number of cooling steps to be used\n");
-    fprintf(fp,
-            "coolrepeat 5     # number of times 'coolsteps' are repeated\n");
+    fprintf(fp, "epsilon_metro    0.25      #distance from the identity of the "
+                "random matrix for metropolis\n");
     fprintf(fp, "\n");
     fprintf(fp, "#output files\n");
     fprintf(fp, "conf_file  conf.dat\n");
     fprintf(fp, "data_file  dati.dat\n");
-    fprintf(fp, "mon_file   mon.dat\n");
     fprintf(fp, "log_file   log.dat\n");
     fprintf(fp, "\n");
     fprintf(fp, "randseed 0    #(0=time)\n");
@@ -176,11 +181,9 @@ int main(int argc, char **argv) {
 #ifdef OPENMP_MODE
     printf("\n\tusing OpenMP with %d threads\n", NTHREADS);
 #endif
-
 #ifdef THETA_MODE
     printf("\n\tusing imaginary theta\n");
 #endif
-
     printf("\n");
 
 #ifdef __INTEL_COMPILER
@@ -195,7 +198,8 @@ int main(int argc, char **argv) {
     print_template_input();
 
     return EXIT_SUCCESS;
-  } else {
+  }
+  {
     if (strlen(argv[1]) >= STD_STRING_LENGTH) {
       fprintf(
           stderr,

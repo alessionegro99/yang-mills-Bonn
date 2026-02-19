@@ -17,7 +17,8 @@ bin_PROGRAMS = conf_check \
                yang_mills_tube_conn \
                yang_mills_tube_conn_long \
                yang_mills_tube_disc \
-               yang_mills_tube_disc_long 
+               yang_mills_tube_disc_long \
+			   yang_mills_corrsampling
 
 align = ./include/aligncheck.h \
         ./lib/aligncheck.c
@@ -161,6 +162,9 @@ yang_mills_higgs_SOURCES=./src/yang_mills_higgs.c \
                           $(everything)
 
 yang_mills_local_SOURCES=./src/yang_mills_local.c \
+                          $(everything)
+
+yang_mills_corrsampling_SOURCES=./src/yang_mills_corrsampling.c \
                           $(everything)
 
 yang_mills_polycorr_SOURCES=./src/yang_mills_polycorr.c \

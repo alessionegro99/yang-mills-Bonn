@@ -1,4 +1,4 @@
-﻿#ifndef GAUGE_CONF_MEAS_C
+#ifndef GAUGE_CONF_MEAS_C
 #define GAUGE_CONF_MEAS_C
 
 #include "../include/macro.h"
@@ -1355,10 +1355,14 @@ void perform_measures_higgs(Gauge_Conf *GC, Geometry const *const geo,
 void perform_measures_localobs_corrsampling(Gauge_Conf *GC,
                                             Geometry const *const geo,
                                             FILE *datafilep) {
-
   double plaqs, plaqt;
 
   plaquette(GC, geo, &plaqs, &plaqt);
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r)
+#endif
+
   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
 
   fprintf(datafilep, "\n");

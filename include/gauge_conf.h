@@ -34,7 +34,7 @@ typedef struct Gauge_Conf {
                               // be used in the multilevel
 
   // for the disconnected correlator for string width with trace deformation
-  double complex *loc_plaq;    // [space_vol]
+  double complex *loc_plaq;     // [space_vol]
   double complex *loc_poly_vec; // [space_vol]
 
   // for higgs field & co
@@ -212,6 +212,11 @@ void compute_flavour_observables_corr(Gauge_Conf const *const GC,
                                       double *corr0string1);
 void perform_measures_higgs(Gauge_Conf *GC, Geometry const *const geo,
                             FILE *datafilep);
+
+void perform_measures_localobs_corrsampling(Gauge_Conf *GC,
+                                            Geometry const *const geo,
+                                            FILE *datafilep);
+
 void perform_measures_higgs_for_testing(Gauge_Conf *GC,
                                         Geometry const *const geo,
                                         FILE *datafilep);
@@ -333,6 +338,9 @@ int metropolis_with_tracedef(Gauge_Conf *GC, Geometry const *const geo,
 
 void update(Gauge_Conf *GC, Geometry const *const geo,
             GParam const *const param);
+
+void update_corrsampling(Gauge_Conf *GC, Geometry const *const geo,
+                         GParam const *const param, double *acc);
 void update_with_trace_def(Gauge_Conf *GC, Geometry const *const geo,
                            GParam const *const param, double *acc);
 

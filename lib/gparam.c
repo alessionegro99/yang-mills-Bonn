@@ -1497,4 +1497,63 @@ void print_parameters_higgs(GParam const *const param, time_t time_start,
   fclose(fp);
 }
 
+// print simulation parameters for the correlated sampling case
+void print_parameters_corrsampling(GParam const *const param, time_t time_start,
+                                   time_t time_end, double acc) {
+  FILE *fp;
+  int i;
+  double diff_sec;
+
+  fp = fopen(param->d_log_file, "w");
+  fprintf(fp, "+------------------------------------------------+\n");
+  fprintf(fp, "| Simulation details for yang_mills_corrsampling |\n");
+  fprintf(fp, "+------------------------------------------------+\n\n");
+
+#ifdef OPENMP_MODE
+  fprintf(fp, "using OpenMP with %d threads\n\n", NTHREADS);
+#endif
+
+  fprintf(fp, "number of colors: %d\n", NCOLOR);
+  fprintf(fp, "spacetime dimensionality: %d\n\n", STDIM);
+
+  fprintf(fp, "lattice: %d", param->d_sizeg[0]);
+  for (i = 1; i < STDIM; i++) {
+    fprintf(fp, "x%d", param->d_sizeg[i]);
+  }
+  fprintf(fp, "\n\n");
+
+  fprintf(fp, "beta:       %.10lf\n", param->d_beta);
+  fprintf(fp, "higgs_beta: %.10lf ", param->d_higgs_beta);
+  fprintf(fp, "\n\n");
+
+  fprintf(fp, "sample:    %d\n", param->d_sample);
+  fprintf(fp, "thermal:   %d\n", param->d_thermal);
+  fprintf(fp, "overrelax: %d\n", param->d_overrelax);
+  fprintf(fp, "measevery: %d\n", param->d_measevery);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "start:                   %d\n", param->d_start);
+  fprintf(fp, "saveconf_back_every:     %d\n", param->d_saveconf_back_every);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "epsilon_metro: %.10lf\n", param->d_epsilon_metro);
+  fprintf(fp, "metropolis acceptance: %.10lf\n", acc);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "randseed: %u\n", param->d_randseed);
+  fprintf(fp, "\n");
+
+  diff_sec = difftime(time_end, time_start);
+  fprintf(fp, "Simulation time: %.3lf seconds\n", diff_sec);
+  fprintf(fp, "\n");
+
+  if (endian() == 0) {
+    fprintf(fp, "Little endian machine\n\n");
+  } else {
+    fprintf(fp, "Big endian machine\n\n");
+  }
+
+  fclose(fp);
+}
+
 #endif
