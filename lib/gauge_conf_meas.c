@@ -840,6 +840,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,
                                              GParam const *const param,
                                              FILE *datafilep, FILE *monofilep) {
+  int i;
   // int n_tr_def = (int)floor(NCOLOR / 2);
   // double poly_sq[n_tr_def];
   double plaqs, plaqt, polyre[NCOLOR / 2 + 1],
@@ -850,9 +851,9 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 
   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
 
-  // for (i = 0; i < (int)floor(NCOLOR / 2); i++) {
-  //   fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
-  // }
+  for (i = 0; i < (int)floor(NCOLOR / 2); i++) {
+    fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
+  }
 
   // polyvec(GC, geo, poly_vec);
 
