@@ -24,7 +24,7 @@ void real_main(char *in_file) {
   GParam param;
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
-  int count, err;
+  int count;
   double acc, acc_local;
   FILE *datafilep, *monofilep;
   time_t time1, time2;
