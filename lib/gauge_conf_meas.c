@@ -839,12 +839,10 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,
                                              GParam const *const param,
-                                             FILE *datafilep, FILE *monofilep,
-                                             double complex *poly_vec,
-                                             double complex *poly_corr) {
+                                             FILE *datafilep, FILE *monofilep) {
   int i;
-  int n_tr_def = (int)floor(NCOLOR / 2);
-  double poly_sq[n_tr_def];
+  // int n_tr_def = (int)floor(NCOLOR / 2);
+  // double poly_sq[n_tr_def];
   double plaqs, plaqt, polyre[NCOLOR / 2 + 1],
       polyim[NCOLOR / 2 + 1]; // +1 just to avoid warning if NCOLOR=1
 
@@ -853,82 +851,82 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 
   fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
 
-  for (i = 0; i < (int)floor(NCOLOR / 2); i++) {
-    fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
-  }
+  // for (i = 0; i < (int)floor(NCOLOR / 2); i++) {
+  //   fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
+  // }
 
-  polyvec(GC, geo, poly_vec);
+  // polyvec(GC, geo, poly_vec);
 
-  double spatial_momentum[STDIM - 1];
-  double G_FT = 0.0;
+  // double spatial_momentum[STDIM - 1];
+  // double G_FT = 0.0;
 
-  for (i = 0; i < STDIM - 1; i++) {
-    spatial_momentum[i] = 0.0;
-  }
+  // for (i = 0; i < STDIM - 1; i++) {
+  //   spatial_momentum[i] = 0.0;
+  // }
 
-  polyakov_corr_FT(geo, poly_vec, &G_FT, spatial_momentum);
+  // polyakov_corr_FT(geo, poly_vec, &G_FT, spatial_momentum);
 
-  fprintf(datafilep, "%.12g ", G_FT);
+  // fprintf(datafilep, "%.12g ", G_FT);
 
-  G_FT = 0.0;
+  // G_FT = 0.0;
 
-  for (i = 0; i < STDIM - 1; i++) {
-    int k;
-    double p_min, tmp_G_FT;
+  // for (i = 0; i < STDIM - 1; i++) {
+  //   int k;
+  //   double p_min, tmp_G_FT;
 
-    p_min = PI2 / (geo->d_size[i]);
-    for (k = 0; k < STDIM - 1; k++) {
-      if (k == i)
-        spatial_momentum[k] = p_min;
-      else
-        spatial_momentum[k] = 0.0;
-    }
+  //  p_min = PI2 / (geo->d_size[i]);
+  //  for (k = 0; k < STDIM - 1; k++) {
+  //    if (k == i)
+  //      spatial_momentum[k] = p_min;
+  //    else
+  //      spatial_momentum[k] = 0.0;
+  //  }
 
-    polyakov_corr_FT(geo, poly_vec, &tmp_G_FT, spatial_momentum);
+  //  polyakov_corr_FT(geo, poly_vec, &tmp_G_FT, spatial_momentum);
 
-    G_FT += tmp_G_FT;
-  }
+  //  G_FT += tmp_G_FT;
+  //}
 
-  G_FT /= (STDIM - 1);
+  // G_FT /= (STDIM - 1);
 
-  fprintf(datafilep, "%.12g ", G_FT);
+  // fprintf(datafilep, "%.12g ", G_FT);
 
-  GAUGE_GROUP matrix, matrix2;
+  // GAUGE_GROUP matrix, matrix2;
 
-  for (i = 0; i < n_tr_def; i++) {
-    poly_sq[i] = 0.0;
-  }
+  // for (i = 0; i < n_tr_def; i++) {
+  //   poly_sq[i] = 0.0;
+  // }
 
-  for (long rsp = 0; rsp < geo->d_space_vol; rsp++) {
-    long r;
+  // for (long rsp = 0; rsp < geo->d_space_vol; rsp++) {
+  //   long r;
 
-    r = sisp_and_t_to_si(geo, rsp, 0);
+  //  r = sisp_and_t_to_si(geo, rsp, 0);
 
-    one(&matrix);
-    for (i = 0; i < geo->d_size[0]; i++) {
-      times_equal(&matrix, &(GC->lattice[r][0]));
-      r = nnp(geo, r, 0);
-    }
+  //  one(&matrix);
+  //  for (i = 0; i < geo->d_size[0]; i++) {
+  //    times_equal(&matrix, &(GC->lattice[r][0]));
+  //    r = nnp(geo, r, 0);
+  //  }
 
-    one(&matrix2);
-    for (i = 0; i < n_tr_def; i++) {
-      times_equal(&matrix2, &matrix);
-      poly_sq[i] +=
-          retr(&matrix2) * retr(&matrix2) + imtr(&matrix2) * imtr(&matrix2);
-    }
-  }
+  //  one(&matrix2);
+  //  for (i = 0; i < n_tr_def; i++) {
+  //    times_equal(&matrix2, &matrix);
+  //    poly_sq[i] +=
+  //        retr(&matrix2) * retr(&matrix2) + imtr(&matrix2) * imtr(&matrix2);
+  //  }
+  //}
 
-  for (i = 0; i < n_tr_def; i++) {
-    poly_sq[i] *= geo->d_inv_space_vol;
-    fprintf(datafilep, "%.12g ", poly_sq[i]);
-  }
+  // for (i = 0; i < n_tr_def; i++) {
+  //   poly_sq[i] *= geo->d_inv_space_vol;
+  //   fprintf(datafilep, "%.12g ", poly_sq[i]);
+  // }
 
-  polyakov_corr(geo, param, poly_vec, poly_corr);
+  // polyakov_corr(geo, param, poly_vec, poly_corr);
 
-  for (i = 0; i < param->d_poly_corr; i++) {
-    fprintf(datafilep, "%.12g %.12g ", creal(poly_corr[i]),
-            cimag(poly_corr[i]));
-  }
+  // for (i = 0; i < param->d_poly_corr; i++) {
+  //   fprintf(datafilep, "%.12g %.12g ", creal(poly_corr[i]),
+  //           cimag(poly_corr[i]));
+  // }
 
 // topological observables
 #if (STDIM == 4)

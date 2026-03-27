@@ -54,25 +54,25 @@ void real_main(char *in_file) {
   // initialize gauge configuration
   init_gauge_conf(&GC, &geo, &param);
 
-  // initialize polyakov loop vector
-  double complex *poly_vec;
-  err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
-                       (size_t)geo.d_space_vol * sizeof(double complex));
-  if (err != 0) {
-    fprintf(stderr, "Problems in allocating poly_vec (%s, %d)\n", __FILE__,
-            __LINE__);
-    exit(EXIT_FAILURE);
-  }
+  //// initialize polyakov loop vector
+  // double complex *poly_vec;
+  // err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
+  //                      (size_t)geo.d_space_vol * sizeof(double complex));
+  // if (err != 0) {
+  //   fprintf(stderr, "Problems in allocating poly_vec (%s, %d)\n", __FILE__,
+  //           __LINE__);
+  //   exit(EXIT_FAILURE);
+  // }
 
-  // initialize polyakov loop correlator vector
-  double complex *poly_corr;
-  err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
-                       (size_t)param.d_poly_corr * sizeof(double complex));
-  if (err != 0) {
-    fprintf(stderr, "Problems in allocating poly_corr (%s, %d)\n", __FILE__,
-            __LINE__);
-    exit(EXIT_FAILURE);
-  }
+  //// initialize polyakov loop correlator vector
+  // double complex *poly_corr;
+  // err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
+  //                      (size_t)param.d_poly_corr * sizeof(double complex));
+  // if (err != 0) {
+  //   fprintf(stderr, "Problems in allocating poly_corr (%s, %d)\n", __FILE__,
+  //           __LINE__);
+  //   exit(EXIT_FAILURE);
+  // }
 
   // acceptance of the metropolis update
   acc = 0.0;
@@ -86,7 +86,7 @@ void real_main(char *in_file) {
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
       perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep,
-                                              monofilep, poly_vec, poly_corr);
+                                              monofilep);
     }
 
     // save configuration for backup
@@ -132,10 +132,10 @@ void real_main(char *in_file) {
   print_parameters_tracedef(&param, time1, time2, acc);
 
   // free polyakov loop vector
-  free(poly_vec);
+  // free(poly_vec);
 
   // free polyakov loop correlator vector
-  free(poly_corr);
+  // free(poly_corr);
 
   // free gauge configuration
   free_gauge_conf(&GC, &geo);
@@ -159,7 +159,7 @@ void print_template_input(void) {
     fprintf(fp, "beta 10.8075\n");
     fprintf(fp, "htracedef 0.006\n");
     fprintf(fp, "theta 0\n");
-    fprintf(fp, "maxpolycorr 3\n");
+    // fprintf(fp, "maxpolycorr 3\n");
     fprintf(fp, "\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");

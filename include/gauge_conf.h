@@ -34,7 +34,7 @@ typedef struct Gauge_Conf {
                               // be used in the multilevel
 
   // for the disconnected correlator for string width with trace deformation
-  double complex *loc_plaq;    // [space_vol]
+  double complex *loc_plaq;     // [space_vol]
   double complex *loc_poly_vec; // [space_vol]
 
   // for higgs field & co
@@ -188,9 +188,7 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,
                                              GParam const *const param,
-                                             FILE *datafilep, FILE *monofilep,
-                                             double complex *poly_vec,
-                                             double complex *poly_corr);
+                                             FILE *datafilep, FILE *monofilep);
 
 void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
                                           Geometry const *const geo,
