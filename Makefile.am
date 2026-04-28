@@ -16,6 +16,8 @@ bin_PROGRAMS = conf_check \
                yang_mills_spectrum \
                yang_mills_t0 \
                yang_mills_tube_disc_tracedef\
+               yang_mills_reconfinement \
+               yang_mills_reconfinement_extra \
                yang_mills_tracedef \
                yang_mills_tube_conn \
                yang_mills_tube_conn_long \
@@ -212,6 +214,12 @@ yang_mills_t0_SOURCES=./src/yang_mills_t0.c \
 
 yang_mills_tube_disc_tracedef_SOURCES=./src/yang_mills_tube_disc_tracedef.c \
                             $(everything)
+
+yang_mills_reconfinement_SOURCES=./src/yang_mills_reconfinement.c \
+                                 $(everything)
+
+yang_mills_reconfinement_extra_SOURCES=./src/yang_mills_reconfinement_extra.c \
+                                       $(everything)
 
 yang_mills_tracedef_SOURCES=./src/yang_mills_tracedef.c \
                             $(everything)

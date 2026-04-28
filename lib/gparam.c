@@ -1239,17 +1239,17 @@ void print_parameters_tube_disc_tracedef(GParam const *const param,
   fclose(fp);
 }
 
-// print simulation parameters for the tracedef case
-void print_parameters_tracedef(GParam const *const param, time_t time_start,
-                               time_t time_end, double acc) {
+void print_parameters_reconfinement(GParam const *const param,
+                                    time_t time_start, time_t time_end,
+                                    double acc, char const *program_name) {
   FILE *fp;
   int i;
   double diff_sec;
 
   fp = fopen(param->d_log_file, "w");
-  fprintf(fp, "+--------------------------------------------+\n");
-  fprintf(fp, "| Simulation details for yang_mills_tracedef |\n");
-  fprintf(fp, "+--------------------------------------------+\n\n");
+  fprintf(fp, "+----------------------------------------------------------+\n");
+  fprintf(fp, "| Simulation details for %-32s |\n", program_name);
+  fprintf(fp, "+----------------------------------------------------------+\n\n");
 
 #ifdef OPENMP_MODE
   fprintf(fp, "using OpenMP with %d threads\n\n", NTHREADS);
@@ -1309,6 +1309,13 @@ void print_parameters_tracedef(GParam const *const param, time_t time_start,
   }
 
   fclose(fp);
+}
+
+// print simulation parameters for the tracedef case
+void print_parameters_tracedef(GParam const *const param, time_t time_start,
+                               time_t time_end, double acc) {
+  print_parameters_reconfinement(param, time_start, time_end, acc,
+                                 "yang_mills_tracedef");
 }
 
 // print simulation parameters

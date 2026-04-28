@@ -1241,6 +1241,100 @@ void perform_measures_localobs_obc(Gauge_Conf const *const GC,
   fflush(datafilesW);
 }
 
+// perform the reduced trace-deformation measurement used by reconfinement runs
+void perform_measures_localobs_with_tracedef_basic(
+    Gauge_Conf const *const GC, Geometry const *const geo,
+    GParam const *const param, FILE *datafilep, FILE *monofilep) {
+  int i;
+  double plaqs, plaqt, polyre[NCOLOR / 2 + 1],
+      polyim[NCOLOR / 2 + 1]; // +1 just to avoid warning if NCOLOR=1
+
+  plaquette(GC, geo, &plaqs, &plaqt);
+  polyakov_for_tracedef(GC, geo, polyre, polyim);
+
+  fprintf(datafilep, "%.12g %.12g ", plaqs, plaqt);
+
+  for (i = 0; i < (int)floor(NCOLOR / 2); i++) {
+    fprintf(datafilep, "%.12g %.12g ", polyre[i], polyim[i]);
+  }
+
+// topological observables
+#if (STDIM == 4)
+  int err;
+  double *charge, *meanplaq, charge_nocooling;
+
+  charge_nocooling = topcharge(GC, geo, param);
+
+  fprintf(datafilep, "%.12g ", charge_nocooling);
+
+  err = posix_memalign((void **)&charge, (size_t)DOUBLE_ALIGN,
+                       (size_t)param->d_coolrepeat * sizeof(double));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  err = posix_memalign((void **)&meanplaq, (size_t)DOUBLE_ALIGN,
+                       (size_t)param->d_coolrepeat * sizeof(double));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating a vector (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  topcharge_cooling(GC, geo, param, charge, meanplaq);
+  for (i = 0; i < param->d_coolrepeat; i++) {
+    fprintf(datafilep, "%.12g %.12g ", charge[i], meanplaq[i]);
+  }
+  fprintf(datafilep, "\n");
+
+  free(charge);
+  free(meanplaq);
+#else
+  fprintf(datafilep, "\n");
+#endif
+
+  fflush(datafilep);
+
+  // monopole observables
+  if (param->d_mon_meas == 1) {
+#if (STDIM == 4)
+    Gauge_Conf helperconf;
+    int subg, subgnum;
+
+    init_gauge_conf_from_gauge_conf(&helperconf, GC, geo);
+    alloc_diag_proj_stuff(&helperconf, geo);
+
+    // MAG gauge fixing
+    max_abelian_gauge_fix(&helperconf, geo);
+
+    // diagonal projection
+    diag_projection(&helperconf, geo);
+
+    // loop on all the U(1) subgroups
+    if (NCOLOR > 1) {
+      subgnum = NCOLOR - 1;
+    } else {
+      subgnum = 1;
+    }
+    for (subg = 0; subg < subgnum; subg++) {
+      // extract the abelian component subg and save it to GC->u1_subg
+      U1_extract(&helperconf, geo, subg);
+
+      // compute monopole observables
+      monopoles_obs(&helperconf, geo, param, subg, monofilep);
+    }
+
+    free_diag_proj_stuff(&helperconf, geo);
+    free_gauge_conf(&helperconf, geo);
+
+    fflush(monofilep);
+#else
+    (void)monofilep;
+#endif
+  }
+}
+
 // perform measurement of local observables in the case of trace deformation, it
 // computes all the order parameters
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
