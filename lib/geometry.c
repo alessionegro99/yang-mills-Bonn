@@ -29,8 +29,8 @@ void (*si_to_sisp_and_t_compute)(long *sisp, int *t, long si,
 
 // initialize geometry
 void init_geometry(Geometry *geo, int insize[STDIM]) {
-  int i, value, valuep, valuem, err;
-  long r, rm, rp;
+  int i, j, k, value, valuep, valuem, err;
+  long r, rm, rp, aux;
   int cartcoord[STDIM];
 
   for (i = 0; i < STDIM; i++) {
@@ -51,6 +51,30 @@ void init_geometry(Geometry *geo, int insize[STDIM]) {
 
   geo->d_inv_vol = 1.0 / ((double)geo->d_volume);
   geo->d_inv_space_vol = 1.0 / ((double)geo->d_space_vol);
+
+  geo->d_nfaces = 0;
+  for (i = 1; i < STDIM; i++) {
+    for (j = i + 1; j < STDIM; j++) {
+      aux = (geo->d_size[i] - 1) * (geo->d_size[j] - 1);
+      for (k = 1; k < STDIM; k++) {
+        if (k != i && k != j) {
+          aux *= geo->d_size[k];
+        }
+      }
+      geo->d_nfaces += aux;
+    }
+  }
+
+  geo->d_nfaces_temp = 0;
+  for (j = 1; j < STDIM; j++) {
+    aux = geo->d_size[0] * (geo->d_size[j] - 1);
+    for (k = 1; k < STDIM; k++) {
+      if (k != j) {
+        aux *= geo->d_size[k];
+      }
+    }
+    geo->d_nfaces_temp += aux;
+  }
 
   // allocate memory
   err = posix_memalign((void **)&(geo->d_nnp), (size_t)INT_ALIGN,

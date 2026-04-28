@@ -102,7 +102,13 @@ void computehash(char *infile, int dim, long volume, char *hash) {
                   __FILE__, __LINE__);
           exit(EXIT_FAILURE);
         }
-#if NCOLOR == 2
+#if NCOLOR == 1
+        double complex dc = link.comp;
+        if (endian() == 0) {
+          SwapBytesDoubleComplex(&dc);
+        }
+        MD5_Update(&mdContext, &dc, sizeof(double complex));
+#elif NCOLOR == 2
         for (int k = 0; k < 4; k++) {
           double a = link.comp[k];
           if (endian() == 0) {

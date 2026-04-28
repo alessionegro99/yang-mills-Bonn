@@ -81,6 +81,25 @@ void init_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
   }
 }
 
+// Apply open boundary conditions in all spatial directions by zeroing the
+// positive-boundary spatial links. Time remains periodic.
+void apply_obc_spatial(Gauge_Conf *GC, Geometry const *const geo) {
+  long r;
+  int cartcoord[STDIM], dir;
+  GAUGE_GROUP zero_link;
+
+  zero(&zero_link);
+
+  for (r = 0; r < geo->d_volume; r++) {
+    si_to_cart(cartcoord, r, geo);
+    for (dir = 1; dir < STDIM; dir++) {
+      if (cartcoord[dir] + 1 >= geo->d_size[dir]) {
+        equal(&(GC->lattice[r][dir]), &zero_link);
+      }
+    }
+  }
+}
+
 void read_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
                      GParam const *const param) {
   FILE *fp;
@@ -359,7 +378,13 @@ void compute_md5sum_conf(char *res, Gauge_Conf const *const GC,
     for (mu = 0; mu < STDIM; mu++) {
       equal(&matrix, &(GC->lattice[si][mu]));
 
-#if NCOLOR == 2
+#if NCOLOR == 1
+      double complex dc = matrix.comp;
+      if (endian() == 0) {
+        SwapBytesDoubleComplex(&dc);
+      }
+      MD5_Update(&mdContext, &dc, sizeof(double complex));
+#elif NCOLOR == 2
       for (k = 0; k < 4; k++) {
         double a = matrix.comp[k];
         if (endian() == 0) {
@@ -1441,7 +1466,15 @@ void compute_md5sum_higgs(char *res, Gauge_Conf const *const GC,
 
     equal_vecs(&vec, &(GC->higgs[si]));
 
-#if NCOLOR == 2
+#if NCOLOR == 1
+    for (k = 0; k < NHIGGS; k++) {
+      double complex dc = vec.comp[k];
+      if (endian() == 0) {
+        SwapBytesDoubleComplex(&dc);
+      }
+      MD5_Update(&mdContext, &dc, sizeof(double complex));
+    }
+#elif NCOLOR == 2
     for (k = 0; k < 4 * NHIGGS; k++) {
       double a = vec.comp[k];
       if (endian() == 0) {

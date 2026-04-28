@@ -13,6 +13,7 @@
 #include "su2.h"
 #include "sun.h"
 #include "tens_prod.h"
+#include "u1.h"
 
 typedef struct Gauge_Conf {
   long update_index;
@@ -52,9 +53,10 @@ typedef struct Gauge_Conf {
 
 // in gauge_conf_def.c
 void init_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
-                     GParam const *const param);
+	                     GParam const *const param);
+void apply_obc_spatial(Gauge_Conf *GC, Geometry const *const geo);
 void read_gauge_conf(Gauge_Conf *GC, Geometry const *const geo,
-                     GParam const *const param);
+	                     GParam const *const param);
 void free_gauge_conf(Gauge_Conf *GC, Geometry const *const geo);
 void free_gauge_conf_noclover(Gauge_Conf *GC, Geometry const *const geo);
 void write_conf_on_file_with_name(Gauge_Conf const *const GC,
@@ -155,9 +157,31 @@ void plaquettep_matrix(Gauge_Conf const *const GC, Geometry const *const geo,
 void clover(Gauge_Conf const *const GC, Geometry const *const geo, long r,
             int i, int j, GAUGE_GROUP *M);
 void plaquette(Gauge_Conf const *const GC, Geometry const *const geo,
-               double *plaqs, double *plaqt);
+	               double *plaqs, double *plaqt);
+void plaquette_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+                   double *plaqs, double *plaqt);
 void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
-                        double *energy);
+	                        double *energy);
+double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
+	               int j, int wi, int wj, long r);
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
+	               int ws);
+double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+                   int dir, int wt, int ws, long rsp);
+double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
+	                         int i, int j, int k, int wi, int wjk, long r);
+double staircase_Wilsonp_extra(Gauge_Conf const *const GC,
+                               Geometry const *const geo, int i, int j, int k,
+                               int wi, int wjk, int extra, long r);
+double staircase_Wilsont_xy(Gauge_Conf const *const GC,
+	                            Geometry const *const geo, int wt, int ws);
+double staircase_Wilsont_obc(Gauge_Conf const *const GC,
+                             Geometry const *const geo, int j, int k, int wt,
+                             int ws, int extra, long rsp);
+void write_obc_measurement_headers(FILE *datafileW, FILE *datafilesW,
+                                   Geometry const *const geo,
+                                   GParam const *const param, int write_w,
+                                   int write_sw);
 void polyakov(Gauge_Conf const *const GC, Geometry const *const geo,
               double *repoly, double *impoly);
 void polyvec(Gauge_Conf const *const GC, Geometry const *const geo,
@@ -184,6 +208,14 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
                                Geometry const *const geo,
                                GParam const *const param, FILE *datafilep,
                                FILE *monofilep);
+void perform_measures_localobs_step_scaling(
+    Gauge_Conf const *const GC, Geometry const *const geo,
+    GParam const *const param, FILE *datafilep, FILE *datafileW,
+    FILE *datafilesW, FILE *monofilep);
+void perform_measures_localobs_obc(Gauge_Conf const *const GC,
+                                   Geometry const *const geo,
+                                   GParam const *const param, FILE *datafilep,
+                                   FILE *datafileW, FILE *datafilesW);
 
 void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
                                              Geometry const *const geo,
@@ -332,9 +364,11 @@ int metropolis_with_tracedef(Gauge_Conf *GC, Geometry const *const geo,
                              int numhits);
 
 void update(Gauge_Conf *GC, Geometry const *const geo,
-            GParam const *const param);
+	            GParam const *const param);
+void update_obc(Gauge_Conf *GC, Geometry const *const geo,
+                GParam const *const param);
 void update_with_trace_def(Gauge_Conf *GC, Geometry const *const geo,
-                           GParam const *const param, double *acc);
+	                           GParam const *const param, double *acc);
 
 void cooling(Gauge_Conf *GC, Geometry const *const geo, int n);
 void gradflow_RKstep(Gauge_Conf *GC, Gauge_Conf *helper1, Gauge_Conf *helper2,

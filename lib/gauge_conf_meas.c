@@ -243,6 +243,50 @@ void plaquette(Gauge_Conf const *const GC, Geometry const *const geo,
   *plaqt = pt;
 }
 
+// compute mean plaquettes with open spatial boundaries and periodic time
+void plaquette_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+                   double *plaqs, double *plaqt) {
+  long r;
+  double ps, pt;
+
+  ps = 0.0;
+  pt = 0.0;
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : pt)    \
+    reduction(+ : ps)
+#endif
+  for (r = 0; r < (geo->d_volume); r++) {
+    int i, j;
+    i = 0;
+    for (j = 1; j < STDIM; j++) {
+      pt += plaquettep(GC, geo, r, i, j);
+    }
+
+    for (i = 1; i < STDIM; i++) {
+      for (j = i + 1; j < STDIM; j++) {
+        ps += plaquettep(GC, geo, r, i, j);
+      }
+    }
+  }
+
+  if (STDIM > 2 && geo->d_nfaces > 0) {
+    ps /= (double)geo->d_size[0];
+    ps /= (double)geo->d_nfaces;
+  } else {
+    ps = 0.0;
+  }
+
+  if (geo->d_nfaces_temp > 0) {
+    pt /= (double)geo->d_nfaces_temp;
+  } else {
+    pt = 0.0;
+  }
+
+  *plaqs = ps;
+  *plaqt = pt;
+}
+
 // compute the clover discretization of
 // sum_{\mu\nu}  Tr(F_{\mu\nu}F_{\mu\nu})/2
 void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
@@ -272,6 +316,280 @@ void clover_disc_energy(Gauge_Conf const *const GC, Geometry const *const geo,
   }
 
   *energy = ris * geo->d_inv_vol;
+}
+
+// rectangular Wilson loop of size (wi,wj) in direction (i,j) at point r
+double Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo, int i,
+               int j, int wi, int wj, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (j >= STDIM || i >= STDIM) {
+    fprintf(stderr, "i or j too large: (i=%d || j=%d) >= %d (%s, %d)\n", i, j,
+            STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  one(&matrix);
+  for (aux = 0; aux < wj; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+  }
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  for (aux = 0; aux < wj; aux++) {
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+
+  return retr(&matrix);
+}
+
+// averaged temporal rectangular Wilson loop of size (wt,ws)
+double Wilsont(Gauge_Conf const *const GC, Geometry const *const geo, int wt,
+               int ws) {
+  long r;
+  double ris = 0.0;
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    int j;
+    for (j = 1; j < STDIM; j++) {
+      ris += Wilsonp(GC, geo, 0, j, wt, ws, r);
+    }
+  }
+
+  ris *= geo->d_inv_vol;
+  ris /= (STDIM - 1);
+
+  return ris;
+}
+
+// multi-step staircase Wilson loop of size sqrt(2)*wjk at point r.
+double staircase_Wilsonp(Gauge_Conf const *const GC, Geometry const *const geo,
+                         int i, int j, int k, int wi, int wjk, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (i >= STDIM || j >= STDIM || k >= STDIM) {
+    fprintf(stderr,
+            "i, j, or k too large: (i=%d, j=%d, k=%d) >= %d (%s, %d)\n", i, j,
+            k, STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  one(&matrix);
+  for (aux = 0; aux < wjk; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+    times_equal(&matrix, &(GC->lattice[r][k]));
+    r = nnp(geo, r, k);
+  }
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  for (aux = 0; aux < wjk; aux++) {
+    r = nnm(geo, r, k);
+    times_equal_dag(&matrix, &(GC->lattice[r][k]));
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+
+  return retr(&matrix);
+}
+
+// averaged temporal staircase Wilson loop of size (wt,ws*sqrt(2)) in xy
+double staircase_Wilsont_xy(Gauge_Conf const *const GC,
+                            Geometry const *const geo, int wt, int ws) {
+  long r;
+  double ris = 0.0;
+
+  if (STDIM <= 2) {
+    return 0.0;
+  }
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(r) reduction(+ : ris)
+#endif
+  for (r = 0; r < geo->d_volume; r++) {
+    ris += staircase_Wilsonp(GC, geo, 0, 2, 1, wt, ws, r);
+  }
+
+  ris *= geo->d_inv_vol;
+
+  return ris;
+}
+
+// multi-step staircase Wilson loop with extra steps in direction j
+double staircase_Wilsonp_extra(Gauge_Conf const *const GC,
+                               Geometry const *const geo, int i, int j, int k,
+                               int wi, int wjk, int extra, long r) {
+  int aux;
+  GAUGE_GROUP matrix;
+
+#ifdef DEBUG
+  if (r >= geo->d_volume) {
+    fprintf(stderr, "r too large: %ld >= %ld (%s, %d)\n", r, geo->d_volume,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  if (i >= STDIM || j >= STDIM || k >= STDIM) {
+    fprintf(stderr,
+            "i, j, or k too large: (i=%d, j=%d, k=%d) >= %d (%s, %d)\n", i, j,
+            k, STDIM, __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+  one(&matrix);
+  for (aux = 0; aux < wjk; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+    times_equal(&matrix, &(GC->lattice[r][k]));
+    r = nnp(geo, r, k);
+  }
+  for (aux = 0; aux < extra; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][j]));
+    r = nnp(geo, r, j);
+  }
+  for (aux = 0; aux < wi; aux++) {
+    times_equal(&matrix, &(GC->lattice[r][i]));
+    r = nnp(geo, r, i);
+  }
+  for (aux = 0; aux < wi; aux++) {
+    r = nnm(geo, r, i);
+    times_equal_dag(&matrix, &(GC->lattice[r][i]));
+  }
+  for (aux = 0; aux < extra; aux++) {
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+  for (aux = 0; aux < wjk; aux++) {
+    r = nnm(geo, r, k);
+    times_equal_dag(&matrix, &(GC->lattice[r][k]));
+    r = nnm(geo, r, j);
+    times_equal_dag(&matrix, &(GC->lattice[r][j]));
+  }
+
+  return retr(&matrix);
+}
+
+// temporal rectangular Wilson loop at fixed spatial point, averaged over time
+double Wilsont_obc(Gauge_Conf const *const GC, Geometry const *const geo,
+                   int dir, int wt, int ws, long rsp) {
+  int t;
+  double ris = 0.0;
+
+#ifdef DEBUG
+  if (dir <= 0 || dir >= STDIM) {
+    fprintf(stderr, "invalid spatial dir=%d (%s, %d)\n", dir, __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(t) reduction(+ : ris)
+#endif
+  for (t = 0; t < geo->d_size[0]; t++) {
+    long r = sisp_and_t_to_si(geo, rsp, t);
+    ris += Wilsonp(GC, geo, 0, dir, wt, ws, r);
+  }
+
+  ris /= (double)geo->d_size[0];
+
+  return ris;
+}
+
+// temporal staircase Wilson loop at fixed spatial point, averaged over time
+double staircase_Wilsont_obc(Gauge_Conf const *const GC,
+                             Geometry const *const geo, int j, int k, int wt,
+                             int ws, int extra, long rsp) {
+  int t;
+  double ris = 0.0;
+
+#ifdef DEBUG
+  if (j <= 0 || j >= STDIM || k <= 0 || k >= STDIM || j == k) {
+    fprintf(stderr, "invalid spatial directions j=%d k=%d (%s, %d)\n", j, k,
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+#ifdef OPENMP_MODE
+#pragma omp parallel for num_threads(NTHREADS) private(t) reduction(+ : ris)
+#endif
+  for (t = 0; t < geo->d_size[0]; t++) {
+    long r = sisp_and_t_to_si(geo, rsp, t);
+    ris += staircase_Wilsonp_extra(GC, geo, 0, j, k, wt, ws, extra, r);
+  }
+
+  ris /= (double)geo->d_size[0];
+
+  return ris;
+}
+
+void write_obc_measurement_headers(FILE *datafileW, FILE *datafilesW,
+                                   Geometry const *const geo,
+                                   GParam const *const param, int write_w,
+                                   int write_sw) {
+  int i;
+
+  if (write_w) {
+    fprintf(datafileW, "# OBC planar temporal Wilson loops\n");
+    fprintf(datafileW, "# r0");
+    for (i = 0; i < STDIM - 1; i++) {
+      fprintf(datafileW, " %d", param->d_r0[i]);
+    }
+    fprintf(datafileW, "\n");
+    fprintf(datafileW,
+            "# columns: dir=1..%d, ws=1..size[dir]-1, wt=1..%d\n",
+            STDIM - 1, geo->d_size[0]);
+    fflush(datafileW);
+  }
+
+  if (write_sw) {
+    fprintf(datafilesW, "# OBC branch-style staircase temporal Wilson loops\n");
+    fprintf(datafilesW, "# r0");
+    for (i = 0; i < STDIM - 1; i++) {
+      fprintf(datafilesW, " %d", param->d_r0[i]);
+    }
+    fprintf(datafilesW, "\n");
+    fprintf(datafilesW,
+            "# columns: pairs j<k, long=1..size[j]-1, "
+            "short=1..min(long,size[k]-1), wt=1..%d\n",
+            geo->d_size[0]);
+    fprintf(datafilesW, "# path: short diagonal jk steps plus long-short extra "
+                         "j steps\n");
+    fflush(datafilesW);
+  }
 }
 
 // compute the mean Polyakov loop (the trace of)
@@ -664,6 +982,13 @@ double loc_topcharge(Gauge_Conf const *const GC, Geometry const *const geo,
   ris = (loc_charge * chnorm);
 #endif
 
+#if (STDIM == 2 && NCOLOR == 1)
+  GAUGE_GROUP u1matrix;
+
+  plaquettep_matrix(GC, geo, r, 0, 1, &u1matrix);
+  ris = atan2(cimag(u1matrix.comp), creal(u1matrix.comp)) / PI2;
+#endif
+
   return ris;
 }
 
@@ -832,6 +1157,88 @@ void perform_measures_localobs(Gauge_Conf const *const GC,
     (void)monofilep;
 #endif
   }
+}
+
+void perform_measures_localobs_step_scaling(
+    Gauge_Conf const *const GC, Geometry const *const geo,
+    GParam const *const param, FILE *datafilep, FILE *datafileW,
+    FILE *datafilesW, FILE *monofilep) {
+  int ws, wt;
+  const int max_wt = geo->d_size[0] / 2;
+  const int max_ws = 10;
+  const int max_sws = (int)((double)max_ws / sqrt(2.0));
+
+  perform_measures_localobs(GC, geo, param, datafilep, monofilep);
+
+  for (ws = 1; ws <= max_ws; ws++) {
+    for (wt = 1; wt <= max_wt; wt++) {
+      fprintf(datafileW, "%.12g ", Wilsont(GC, geo, wt, ws));
+    }
+  }
+  fprintf(datafileW, "\n");
+  fflush(datafileW);
+
+  if (STDIM > 2) {
+    for (ws = 1; ws <= max_sws; ws++) {
+      for (wt = 1; wt <= max_wt; wt++) {
+        fprintf(datafilesW, "%.12g ", staircase_Wilsont_xy(GC, geo, wt, ws));
+      }
+    }
+  }
+  fprintf(datafilesW, "\n");
+  fflush(datafilesW);
+}
+
+void perform_measures_localobs_obc(Gauge_Conf const *const GC,
+                                   Geometry const *const geo,
+                                   GParam const *const param, FILE *datafilep,
+                                   FILE *datafileW, FILE *datafilesW) {
+  int dir, i, j, k, wt, ws, long_axis, short_axis;
+  int cartcoord[STDIM], t;
+  long r, rsp;
+  double plaqs, plaqt;
+  const int max_wt = geo->d_size[0];
+
+  plaquette_obc(GC, geo, &plaqs, &plaqt);
+  fprintf(datafilep, "%.12g %.12g\n", plaqs, plaqt);
+  fflush(datafilep);
+
+  cartcoord[0] = 0;
+  for (i = 1; i < STDIM; i++) {
+    cartcoord[i] = param->d_r0[i - 1];
+  }
+  r = cart_to_si(cartcoord, geo);
+  si_to_sisp_and_t(&rsp, &t, geo, r);
+  (void)t;
+
+  for (dir = 1; dir < STDIM; dir++) {
+    for (ws = 1; ws < geo->d_size[dir]; ws++) {
+      for (wt = 1; wt <= max_wt; wt++) {
+        fprintf(datafileW, "%.12g ", Wilsont_obc(GC, geo, dir, wt, ws, rsp));
+      }
+    }
+  }
+  fprintf(datafileW, "\n");
+  fflush(datafileW);
+
+  for (j = 1; j < STDIM; j++) {
+    for (k = j + 1; k < STDIM; k++) {
+      for (long_axis = 1; long_axis < geo->d_size[j]; long_axis++) {
+        for (short_axis = 1;
+             short_axis <= long_axis && short_axis < geo->d_size[k];
+             short_axis++) {
+          const int extra = long_axis - short_axis;
+          for (wt = 1; wt <= max_wt; wt++) {
+            fprintf(datafilesW, "%.12g ",
+                    staircase_Wilsont_obc(GC, geo, j, k, wt, short_axis,
+                                           extra, rsp));
+          }
+        }
+      }
+    }
+  }
+  fprintf(datafilesW, "\n");
+  fflush(datafilesW);
 }
 
 // perform measurement of local observables in the case of trace deformation, it

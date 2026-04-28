@@ -67,6 +67,9 @@ void readinput(char *in_file, GParam *param) {
   param->d_theta = 0.0;
   param->d_mon_meas = 0; // if =1 monopole measures are performed
   param->d_higgs_beta = 0.0;
+  for (i = 0; i < STDIM - 1; i++) {
+    param->d_r0[i] = -1;
+  }
 
   input = fopen(in_file, "r"); // open the input file
   if (input == NULL) {
@@ -193,6 +196,17 @@ void readinput(char *in_file, GParam *param) {
           exit(EXIT_FAILURE);
         }
         param->d_mon_meas = temp_i;
+      }
+      else if (strncmp(str, "r0", 2) == 0) {
+        for (i = 0; i < STDIM - 1; i++) {
+          err = fscanf(input, "%d", &temp_i);
+          if (err != 1) {
+            fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file,
+                    __FILE__, __LINE__);
+            exit(EXIT_FAILURE);
+          }
+          param->d_r0[i] = temp_i;
+        }
       }
 
       else if (strncmp(str, "start", 5) == 0) {
@@ -355,6 +369,22 @@ void readinput(char *in_file, GParam *param) {
           exit(EXIT_FAILURE);
         }
         strcpy(param->d_data_file, temp_str);
+      } else if (strncmp(str, "Wloop_file", 10) == 0) {
+        err = fscanf(input, "%s", temp_str);
+        if (err != 1) {
+          fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file,
+                  __FILE__, __LINE__);
+          exit(EXIT_FAILURE);
+        }
+        strcpy(param->d_Wloop_file, temp_str);
+      } else if (strncmp(str, "sWloop_file", 11) == 0) {
+        err = fscanf(input, "%s", temp_str);
+        if (err != 1) {
+          fprintf(stderr, "Error in reading the file %s (%s, %d)\n", in_file,
+                  __FILE__, __LINE__);
+          exit(EXIT_FAILURE);
+        }
+        strcpy(param->d_sWloop_file, temp_str);
       }
       // MONOPOLES file
       else if (strncmp(str, "mon_file", 8) == 0) {
@@ -412,6 +442,18 @@ void readinput(char *in_file, GParam *param) {
     }
 
     fclose(input);
+
+    for (i = 0; i < STDIM - 1; i++) {
+      if (param->d_r0[i] < 0) {
+        param->d_r0[i] = param->d_sizeg[i + 1] / 2;
+      } else if (param->d_r0[i] >= param->d_sizeg[i + 1]) {
+        fprintf(stderr,
+                "Error: r0[%d]=%d is outside the spatial lattice size %d "
+                "(%s, %d)\n",
+                i, param->d_r0[i], param->d_sizeg[i + 1], __FILE__, __LINE__);
+        exit(EXIT_FAILURE);
+      }
+    }
 
     // VARIOUS CHECKS
     if (param->d_ml_step[0] != 0) {
@@ -498,6 +540,64 @@ void init_data_file(FILE **dataf, GParam const *const param) {
   fflush(*dataf);
 }
 
+// initialize planar Wilson-loop file
+void init_Wloop_file(FILE **dataf, GParam const *const param) {
+  int i;
+
+  if (param->d_start == 2) {
+    *dataf = fopen(param->d_Wloop_file, "r");
+    if (*dataf != NULL) // file exists
+    {
+      fclose(*dataf);
+      *dataf = fopen(param->d_Wloop_file, "a");
+    } else {
+      *dataf = fopen(param->d_Wloop_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for (i = 0; i < STDIM; i++) {
+        fprintf(*dataf, "%d ", param->d_sizeg[i]);
+      }
+      fprintf(*dataf, "\n");
+    }
+  } else {
+    *dataf = fopen(param->d_Wloop_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for (i = 0; i < STDIM; i++) {
+      fprintf(*dataf, "%d ", param->d_sizeg[i]);
+    }
+    fprintf(*dataf, "\n");
+  }
+  fflush(*dataf);
+}
+
+// initialize staircase Wilson-loop file
+void init_sWloop_file(FILE **dataf, GParam const *const param) {
+  int i;
+
+  if (param->d_start == 2) {
+    *dataf = fopen(param->d_sWloop_file, "r");
+    if (*dataf != NULL) // file exists
+    {
+      fclose(*dataf);
+      *dataf = fopen(param->d_sWloop_file, "a");
+    } else {
+      *dataf = fopen(param->d_sWloop_file, "w");
+      fprintf(*dataf, "%d ", STDIM);
+      for (i = 0; i < STDIM; i++) {
+        fprintf(*dataf, "%d ", param->d_sizeg[i]);
+      }
+      fprintf(*dataf, "\n");
+    }
+  } else {
+    *dataf = fopen(param->d_sWloop_file, "w");
+    fprintf(*dataf, "%d ", STDIM);
+    for (i = 0; i < STDIM; i++) {
+      fprintf(*dataf, "%d ", param->d_sizeg[i]);
+    }
+    fprintf(*dataf, "\n");
+  }
+  fflush(*dataf);
+}
+
 // initialize monopoles file
 void init_mon_file(FILE **monof, GParam const *const param) {
   int i;
@@ -564,6 +664,74 @@ void print_parameters_local(GParam const *const param, time_t time_start,
   fprintf(fp, "measevery: %d\n", param->d_measevery);
   fprintf(fp, "monopoles: %d\n", param->d_mon_meas);
   fprintf(fp, "\n");
+
+  fprintf(fp, "start:                   %d\n", param->d_start);
+  fprintf(fp, "saveconf_back_every:     %d\n", param->d_saveconf_back_every);
+  fprintf(fp, "saveconf_analysis_every: %d\n",
+          param->d_saveconf_analysis_every);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "coolsteps:      %d\n", param->d_coolsteps);
+  fprintf(fp, "coolrepeat:     %d\n", param->d_coolrepeat);
+  fprintf(fp, "\n");
+
+  fprintf(fp, "randseed: %u\n", param->d_randseed);
+  fprintf(fp, "\n");
+
+  diff_sec = difftime(time_end, time_start);
+  fprintf(fp, "Simulation time: %.3lf seconds\n", diff_sec);
+  fprintf(fp, "\n");
+
+  if (endian() == 0) {
+    fprintf(fp, "Little endian machine\n\n");
+  } else {
+    fprintf(fp, "Big endian machine\n\n");
+  }
+
+  fclose(fp);
+}
+
+// print simulation parameters for the local OBC executable
+void print_parameters_local_obc(GParam const *const param, time_t time_start,
+                                time_t time_end) {
+  FILE *fp;
+  int i;
+  double diff_sec;
+
+  fp = fopen(param->d_log_file, "w");
+  fprintf(fp, "+---------------------------------------------+\n");
+  fprintf(fp, "| Simulation details for yang_mills_local_obc |\n");
+  fprintf(fp, "+---------------------------------------------+\n\n");
+
+#ifdef OPENMP_MODE
+  fprintf(fp, "using OpenMP with %d threads\n\n", NTHREADS);
+#endif
+
+  fprintf(fp, "number of colors: %d\n", NCOLOR);
+  fprintf(fp, "spacetime dimensionality: %d\n\n", STDIM);
+
+  fprintf(fp, "lattice: %d", param->d_sizeg[0]);
+  for (i = 1; i < STDIM; i++) {
+    fprintf(fp, "x%d", param->d_sizeg[i]);
+  }
+  fprintf(fp, "\n\n");
+
+  fprintf(fp, "beta: %.10lf\n", param->d_beta);
+#ifdef THETA_MODE
+  fprintf(fp, "theta: %.10lf\n", param->d_theta);
+#endif
+  fprintf(fp, "\n");
+
+  fprintf(fp, "sample:    %d\n", param->d_sample);
+  fprintf(fp, "thermal:   %d\n", param->d_thermal);
+  fprintf(fp, "overrelax: %d\n", param->d_overrelax);
+  fprintf(fp, "measevery: %d\n", param->d_measevery);
+  fprintf(fp, "monopoles: %d\n", param->d_mon_meas);
+  fprintf(fp, "r0: (%d", param->d_r0[0]);
+  for (i = 1; i < STDIM - 1; i++) {
+    fprintf(fp, ", %d", param->d_r0[i]);
+  }
+  fprintf(fp, ")\n\n");
 
   fprintf(fp, "start:                   %d\n", param->d_start);
   fprintf(fp, "saveconf_back_every:     %d\n", param->d_saveconf_back_every);

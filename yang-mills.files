@@ -48,6 +48,8 @@ src/debug_rng.c
 src/debug_su2.c
 src/debug_sun.c
 src/yang_mills_local.c
+src/yang_mills_local_obc.c
+src/yang_mills_local_step_scaling.c
 config.h
 include/u1.h
 lib/u1.c

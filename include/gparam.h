@@ -23,6 +23,7 @@ typedef struct GParam {
   int d_overrelax;
   int d_measevery;
   int d_mon_meas; // if 1 monopoles measures are performed.
+  int d_r0[STDIM - 1];
 
   // initialization & saving
   int d_start;
@@ -54,6 +55,8 @@ typedef struct GParam {
   char d_conf_file[STD_STRING_LENGTH];
   char d_higgs_conf_file[STD_STRING_LENGTH];
   char d_data_file[STD_STRING_LENGTH];
+  char d_Wloop_file[STD_STRING_LENGTH];
+  char d_sWloop_file[STD_STRING_LENGTH];
   char d_mon_file[STD_STRING_LENGTH];
   char d_log_file[STD_STRING_LENGTH];
   char d_ml_file[STD_STRING_LENGTH];
@@ -68,9 +71,12 @@ void remove_white_line_and_comments(FILE *input);
 void readinput(char *in_file, GParam *param);
 
 void init_data_file(FILE **dataf, GParam const * const param);
+void init_Wloop_file(FILE **dataf, GParam const * const param);
+void init_sWloop_file(FILE **dataf, GParam const * const param);
 void init_mon_file(FILE **monof, GParam const * const param);
 
 void print_parameters_local(GParam const * const param, time_t time_start, time_t time_end);
+void print_parameters_local_obc(GParam const * const param, time_t time_start, time_t time_end);
 
 void print_parameters_polycorr(GParam * param, time_t time_start, time_t time_end);
 void print_parameters_polycorr_higgs(GParam * param, time_t time_start, time_t time_end, double acc);

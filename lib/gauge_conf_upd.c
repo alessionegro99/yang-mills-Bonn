@@ -895,6 +895,21 @@ int metropolis_with_tracedef(Gauge_Conf *GC,
   }
 
 
+static int link_active_obc(Geometry const * const geo, long r, int dir)
+  {
+  if(dir==0)
+    {
+    return 1;
+    }
+  else
+    {
+    int cartcoord[STDIM];
+    si_to_cart(cartcoord, r, geo);
+    return cartcoord[dir] + 1 < geo->d_size[dir];
+    }
+  }
+
+
 // perform a complete update
 void update(Gauge_Conf * GC,
             Geometry const * const geo,
@@ -964,6 +979,96 @@ void update(Gauge_Conf * GC,
          {
          unitarize(&(GC->lattice[r][dir]));
          } 
+      }
+
+   GC->update_index++;
+   }
+
+
+// perform a complete update with open spatial boundary conditions
+void update_obc(Gauge_Conf *GC,
+                Geometry const * const geo,
+                GParam const * const param)
+   {
+   long r;
+   int j, dir;
+
+   // heatbath
+   for(dir=0; dir<STDIM; dir++)
+      {
+      #ifdef THETA_MODE
+      compute_clovers(GC, geo, dir);
+      #endif
+
+      #ifdef OPENMP_MODE
+      #pragma omp parallel for num_threads(NTHREADS) private(r)
+      #endif
+      for(r=0; r<(geo->d_volume)/2; r++)
+         {
+         if(link_active_obc(geo, r, dir))
+           {
+           heatbath(GC, geo, param, r, dir);
+           }
+         }
+
+      #ifdef OPENMP_MODE
+      #pragma omp parallel for num_threads(NTHREADS) private(r)
+      #endif
+      for(r=(geo->d_volume)/2; r<(geo->d_volume); r++)
+         {
+         if(link_active_obc(geo, r, dir))
+           {
+           heatbath(GC, geo, param, r, dir);
+           }
+         }
+      }
+
+   // overrelax
+   for(dir=0; dir<STDIM; dir++)
+      {
+      #ifdef THETA_MODE
+      compute_clovers(GC, geo, dir);
+      #endif
+
+      for(j=0; j<param->d_overrelax; j++)
+         {
+         #ifdef OPENMP_MODE
+         #pragma omp parallel for num_threads(NTHREADS) private(r)
+         #endif
+         for(r=0; r<(geo->d_volume)/2; r++)
+            {
+            if(link_active_obc(geo, r, dir))
+              {
+              overrelaxation(GC, geo, param, r, dir);
+              }
+            }
+
+         #ifdef OPENMP_MODE
+         #pragma omp parallel for num_threads(NTHREADS) private(r)
+         #endif
+         for(r=(geo->d_volume)/2; r<(geo->d_volume); r++)
+            {
+            if(link_active_obc(geo, r, dir))
+              {
+              overrelaxation(GC, geo, param, r, dir);
+              }
+            }
+         }
+      }
+
+   // final unitarization
+   #ifdef OPENMP_MODE
+   #pragma omp parallel for num_threads(NTHREADS) private(r, dir)
+   #endif
+   for(r=0; r<(geo->d_volume); r++)
+      {
+      for(dir=0; dir<STDIM; dir++)
+         {
+         if(link_active_obc(geo, r, dir))
+           {
+           unitarize(&(GC->lattice[r][dir]));
+           }
+         }
       }
 
    GC->update_index++;

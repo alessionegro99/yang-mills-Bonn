@@ -3,9 +3,12 @@ bin_PROGRAMS = conf_check \
                debug_su2 \
                debug_su2sun \
                debug_sun \
+               debug_u1 \
                debug_vecs \
                yang_mills_higgs \
                yang_mills_local \
+               yang_mills_local_obc \
+               yang_mills_local_step_scaling \
                yang_mills_polycorr \
                yang_mills_polycorr_long \
                yang_mills_polycorr_higgs \
@@ -77,6 +80,13 @@ sun = ./include/sun.h \
       ./lib/sun_monopoles.c \
       ./lib/sun_upd.c 
 
+u1 = ./include/u1.h \
+     ./include/u1_monopoles.h \
+     ./include/u1_upd.h \
+     ./lib/u1.c \
+     ./lib/u1_monopoles.c \
+     ./lib/u1_upd.c
+
 tens_prod = ./include/tens_prod.h \
             ./lib/tens_prod.c 
 
@@ -92,7 +102,8 @@ everything =  $(align) \
               $(random) \
               $(su2) \
               $(sun) \
-              $(tens_prod) 
+              $(tens_prod) \
+              $(u1)
 
 conf_check_SOURCES=./src/conf_check.c \
                    $(align) \
@@ -104,7 +115,8 @@ conf_check_SOURCES=./src/conf_check.c \
                    $(random) \
                    $(su2) \
                    $(sun) \
-                   $(tens_prod) 
+                   $(tens_prod) \
+                   $(u1)
 
 debug_rng_SOURCES=./src/debug_rng.c \
                   $(align) \
@@ -144,6 +156,16 @@ debug_sun_SOURCES=./src/debug_sun.c \
                   $(sun) \
                   $(tens_prod) 
 
+debug_u1_SOURCES=./src/debug_u1.c \
+                 $(align) \
+                 $(dSFMT) \
+                 $(endian) \
+                 $(gparam) \
+                 ./include/macro.h \
+                 $(random) \
+                 $(tens_prod) \
+                 $(u1)
+
 debug_vecs_SOURCES=./src/debug_vecs.c \
                    $(align) \
                    $(dSFMT) \
@@ -155,13 +177,20 @@ debug_vecs_SOURCES=./src/debug_vecs.c \
                    $(random) \
                    $(su2) \
                    $(sun) \
-                   $(tens_prod) 
+                   $(tens_prod) \
+                   $(u1)
 
 yang_mills_higgs_SOURCES=./src/yang_mills_higgs.c \
                           $(everything)
 
 yang_mills_local_SOURCES=./src/yang_mills_local.c \
                           $(everything)
+
+yang_mills_local_obc_SOURCES=./src/yang_mills_local_obc.c \
+                              $(everything)
+
+yang_mills_local_step_scaling_SOURCES=./src/yang_mills_local_step_scaling.c \
+                                      $(everything)
 
 yang_mills_polycorr_SOURCES=./src/yang_mills_polycorr.c \
                             $(everything)
@@ -201,4 +230,4 @@ yang_mills_tube_disc_long_SOURCES=./src/yang_mills_tube_disc_long.c \
 
 AM_CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror -pedantic -Wconversion @OPENMP_CFLAGS@
 
-CLEANFILES = dati.dat log.dat dati.log conf.dat* ml.dat template_input.in higgs_conf.dat* mon.dat
+CLEANFILES = dati.dat log.dat dati.log conf.dat* ml.dat template_input.in higgs_conf.dat* mon.dat Wloop.dat sWloop.dat

@@ -3,7 +3,10 @@
 
 #include"../config.h"
 
-#if NCOLOR == 2
+#if NCOLOR == 1
+  #define GAUGE_GROUP     U1
+  #define GAUGE_VECS      U1Vecs
+#elif NCOLOR == 2
   #define GAUGE_GROUP     Su2
   #define GAUGE_VECS      Su2Vecs
 #else
