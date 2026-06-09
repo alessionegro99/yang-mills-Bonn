@@ -18,13 +18,37 @@
 #include "../include/gparam.h"
 #include "../include/random.h"
 
+static void perform_measures_reconfinement_polycorr(
+    Gauge_Conf const *const GC, Geometry const *const geo,
+    GParam const *const param, FILE *datafilep, double complex *poly_vec,
+    double complex *poly_corr) {
+  int i;
+  double plaqs, plaqt, polyre, polyim;
+
+  plaquette(GC, geo, &plaqs, &plaqt);
+  polyakov(GC, geo, &polyre, &polyim);
+  polyvec(GC, geo, poly_vec);
+  polyakov_corr(geo, param, poly_vec, poly_corr);
+
+  fprintf(datafilep, "%.12g %.12g %.12g %.12g ", plaqt, plaqs, polyre,
+          polyim);
+
+  for (i = 0; i < param->d_poly_corr; i++) {
+    fprintf(datafilep, "%.12g %.12g ", creal(poly_corr[i]),
+            cimag(poly_corr[i]));
+  }
+
+  fprintf(datafilep, "\n");
+  fflush(datafilep);
+}
+
 void real_main(char *in_file) {
   Gauge_Conf GC;
   Geometry geo;
   GParam param;
 
   char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
-  int count;
+  int count, err;
   double acc, acc_local;
   FILE *datafilep, *monofilep = NULL;
   time_t time1, time2;
@@ -54,6 +78,26 @@ void real_main(char *in_file) {
   // initialize gauge configuration
   init_gauge_conf(&GC, &geo, &param);
 
+  // initialize Polyakov loop vector
+  double complex *poly_vec;
+  err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
+                       (size_t)geo.d_space_vol * sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating poly_vec (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  // initialize Polyakov loop correlator vector
+  double complex *poly_corr;
+  err = posix_memalign((void **)&poly_corr, DOUBLE_ALIGN,
+                       (size_t)param.d_poly_corr * sizeof(double complex));
+  if (err != 0) {
+    fprintf(stderr, "Problems in allocating poly_corr (%s, %d)\n", __FILE__,
+            __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   // acceptance of the metropolis update
   acc = 0.0;
 
@@ -65,8 +109,8 @@ void real_main(char *in_file) {
     acc += acc_local;
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_localobs_with_tracedef_basic(&GC, &geo, &param,
-                                                    datafilep, monofilep);
+      perform_measures_reconfinement_polycorr(&GC, &geo, &param, datafilep,
+                                              poly_vec, poly_corr);
     }
 
     // save configuration for backup
@@ -112,6 +156,12 @@ void real_main(char *in_file) {
   print_parameters_reconfinement(&param, time1, time2, acc,
                                  "yang_mills_reconfinement");
 
+  // free Polyakov loop vector
+  free(poly_vec);
+
+  // free Polyakov loop correlator vector
+  free(poly_corr);
+
   // free gauge configuration
   free_gauge_conf(&GC, &geo);
 
@@ -134,6 +184,7 @@ void print_template_input(void) {
     fprintf(fp, "beta 10.8075\n");
     fprintf(fp, "htracedef 0.006\n");
     fprintf(fp, "theta 0\n");
+    fprintf(fp, "maxpolycorr 3\n");
     fprintf(fp, "\n");
     fprintf(fp, "sample    10\n");
     fprintf(fp, "thermal   0\n");
