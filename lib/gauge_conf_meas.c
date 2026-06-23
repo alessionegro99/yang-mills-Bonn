@@ -1377,7 +1377,7 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
     int k;
     double p_min, tmp_G_FT;
 
-    p_min = PI2 / (geo->d_size[i]);
+    p_min = PI2 / (geo->d_size[i + 1]);
     for (k = 0; k < STDIM - 1; k++) {
       if (k == i)
         spatial_momentum[k] = p_min;
