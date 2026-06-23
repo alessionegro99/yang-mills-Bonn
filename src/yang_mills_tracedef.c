@@ -85,8 +85,14 @@ void real_main(char *in_file) {
     acc += acc_local;
 
     if (count % param.d_measevery == 0 && count >= param.d_thermal) {
-      perform_measures_localobs_with_tracedef(&GC, &geo, &param, datafilep,
-                                              monofilep, poly_vec, poly_corr);
+      // Cross-check run: only the Polyakov-loop structure factors G_0 and
+      // G_pmin are written ("count G_0 G_pmin"), for the SU(2) deconfinement
+      // Binder cumulant / second-moment xi comparison against klft. Restore
+      // perform_measures_localobs_with_tracedef for the full trace-def output.
+      perform_measures_polyakov_FT(&GC, &geo, &param, count, datafilep,
+                                   poly_vec);
+      (void)monofilep;
+      (void)poly_corr;
     }
 
     // save configuration for backup

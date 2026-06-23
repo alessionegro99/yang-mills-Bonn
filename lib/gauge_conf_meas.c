@@ -1508,6 +1508,50 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
   }
 }
 
+// Minimal Polyakov-loop momentum-space measurement for the SU(2) deconfinement
+// finite-size-scaling cross-check (Binder cumulant + second-moment xi). Writes
+// one line per measurement, "count G_0 G_pmin", with
+//   G_0    = |A(0)|^2                  (zero-momentum structure factor);
+//   G_pmin = mean_i |A(p_min e_i)|^2   (minimal momentum, full power Re^2+Im^2,
+//                                       averaged over the STDIM-1 spatial dirs),
+// from the raw Polyakov-loop Fourier amplitude A(p) = (1/V_s) sum_x e^{ip.x}P(x)
+// (polyakov_FT / polyakov_corr_FT). These are the same two primaries klft writes
+// in PolyakovSusceptibility; the analysis forms U4 = <G_0^2>/<G_0>^2 and
+// xi = sqrt(<G_0>/<G_pmin> - 1) / (2 sin(pi/L)). Direction 0 is time, so the
+// spatial extents are d_size[i+1] (the bug fix in commit b57cf1d).
+void perform_measures_polyakov_FT(Gauge_Conf const *const GC,
+                                  Geometry const *const geo,
+                                  GParam const *const param, long count,
+                                  FILE *datafilep, double complex *poly_vec) {
+  int i;
+  double spatial_momentum[STDIM - 1];
+  double G_0 = 0.0, G_pmin = 0.0;
+
+  (void)param;
+
+  polyvec(GC, geo, poly_vec);
+
+  for (i = 0; i < STDIM - 1; i++) {
+    spatial_momentum[i] = 0.0;
+  }
+  polyakov_corr_FT(geo, poly_vec, &G_0, spatial_momentum);
+
+  for (i = 0; i < STDIM - 1; i++) {
+    int k;
+    double tmp_G_FT;
+    double p_min = PI2 / (geo->d_size[i + 1]);
+    for (k = 0; k < STDIM - 1; k++) {
+      spatial_momentum[k] = (k == i) ? p_min : 0.0;
+    }
+    polyakov_corr_FT(geo, poly_vec, &tmp_G_FT, spatial_momentum);
+    G_pmin += tmp_G_FT;
+  }
+  G_pmin /= (STDIM - 1);
+
+  fprintf(datafilep, "%ld %.12g %.12g\n", count, G_0, G_pmin);
+  fflush(datafilep);
+}
+
 // perform the computation of the string width with the
 // disconnected correlator for the theory with trace deformation
 void perform_measures_profile_flux_tube_with_tracedef(Gauge_Conf *GC,

@@ -226,6 +226,10 @@ void perform_measures_localobs_with_tracedef(Gauge_Conf const *const GC,
 void perform_measures_localobs_with_tracedef_basic(
     Gauge_Conf const *const GC, Geometry const *const geo,
     GParam const *const param, FILE *datafilep, FILE *monofilep);
+void perform_measures_polyakov_FT(Gauge_Conf const *const GC,
+                                  Geometry const *const geo,
+                                  GParam const *const param, long count,
+                                  FILE *datafilep, double complex *poly_vec);
 
 void compute_local_poly_and_plaq_tracedef(Gauge_Conf *GC,
                                           Geometry const *const geo,
