@@ -18,6 +18,21 @@
 #include"../include/gparam.h"
 #include"../include/random.h"
 
+// RNG cross-check observable: one row per measurement, in the same
+// spatial-then-temporal order used by plaquette() and by the KLFT comparison.
+// The data file's first line remains the standard geometry header written by
+// init_data_file().
+static void perform_measures_plaquettes_only(
+    Gauge_Conf const *const GC, Geometry const *const geo, int count,
+    FILE *datafilep)
+  {
+  double plaqs, plaqt;
+
+  plaquette(GC, geo, &plaqs, &plaqt);
+  fprintf(datafilep, "%d %.12g %.12g\n", count, plaqs, plaqt);
+  fflush(datafilep);
+  }
+
 void real_main(char *in_file)
     {
     Gauge_Conf GC;
@@ -25,7 +40,7 @@ void real_main(char *in_file)
     GParam param;
 
     char name[STD_STRING_LENGTH], aux[STD_STRING_LENGTH];
-    int count, err;
+    int count;
     FILE *datafilep, *monofilep;
     time_t time1, time2;
 
@@ -55,16 +70,6 @@ void real_main(char *in_file)
     // initialize gauge configuration
     init_gauge_conf(&GC, &geo, &param);
 
-    // initialize polyakov loop vector (needed by perform_measures_polyakov_FT)
-    double complex *poly_vec;
-    err = posix_memalign((void **)&poly_vec, DOUBLE_ALIGN,
-                         (size_t)geo.d_space_vol * sizeof(double complex));
-    if(err != 0)
-      {
-      fprintf(stderr, "Problems in allocating poly_vec (%s, %d)\n", __FILE__, __LINE__);
-      exit(EXIT_FAILURE);
-      }
-
     // montecarlo
     time(&time1);
     // count starts from 1 to avoid problems using %
@@ -74,14 +79,7 @@ void real_main(char *in_file)
 
        if(count % param.d_measevery ==0 && count >= param.d_thermal)
          {
-         // Cross-check run: only the Polyakov-loop structure factors G_0 and
-         // G_pmin are written ("count G_0 G_pmin"), for the SU(2) deconfinement
-         // Binder cumulant / second-moment xi comparison against klft. The
-         // updater here is plain heatbath+overrelax (HB+OR) on ALL links, so
-         // this is the HB+OR counterpart of the metropolis-on-temporal
-         // yang_mills_tracedef run. Restore perform_measures_localobs for the
-         // standard local-observable output.
-         perform_measures_polyakov_FT(&GC, &geo, &param, count, datafilep, poly_vec);
+         perform_measures_plaquettes_only(&GC, &geo, count, datafilep);
          (void)monofilep;
          }
 
@@ -130,9 +128,6 @@ void real_main(char *in_file)
 
     // print simulation details
     print_parameters_local(&param, time1, time2);
-
-    // free polyakov loop vector
-    free(poly_vec);
 
     // free gauge configuration
     free_gauge_conf(&GC, &geo);
